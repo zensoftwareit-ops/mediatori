@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 22-lug-2020 12.09.48 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+	<class name="itsol.luna.core.beans.Buyer" table="customers">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="identity" />
+		</id>
+		<property name="insert_date" type="java.util.Date">
+			<column name="insert_date" />
+		</property>
+		<property name="update_date" type="java.util.Date">
+			<column name="update_date" />
+		</property>
+		<property name="id_admin" type="java.lang.Long">
+			<column name="id_admin" />
+		</property>
+		<property name="business_name" type="java.lang.String">
+			<column name="business_name" />
+		</property>
+		<property name="vat_number" type="java.lang.String">
+			<column name="vat_number" />
+		</property>
+		<property name="legal_address" type="java.lang.String">
+			<column name="legal_address" />
+		</property>
+		<property name="secondary_address" type="java.lang.String">
+			<column name="secondary_address" />
+		</property>
+		<property name="legal_zip_code" type="java.lang.String">
+			<column name="legal_zip_code" />
+		</property>
+		<property name="secondary_zip_code" type="java.lang.String">
+			<column name="secondary_zip_code" />
+		</property>
+		<property name="legal_province" type="java.lang.String">
+			<column name="legal_province" />
+		</property>
+		<property name="secondary_province" type="java.lang.String">
+			<column name="secondary_province" />
+		</property>
+		<property name="legal_city" type="java.lang.String">
+			<column name="legal_city" />
+		</property>
+		<property name="secondary_city" type="java.lang.String">
+			<column name="secondary_city" />
+		</property>
+		<property name="legal_nation" type="java.lang.String">
+			<column name="legal_nation" />
+		</property>
+		<property name="secondary_nation" type="java.lang.String">
+			<column name="secondary_nation" />
+		</property>
+		<property name="primary_email" type="java.lang.String">
+			<column name="primary_email" />
+		</property>
+		<property name="pec_email" type="java.lang.String">
+			<column name="pec_email" />
+		</property>
+		<property name="sdi_code" type="java.lang.String">
+			<column name="sdi_code" />
+		</property>
+		<property name="extra" type="java.lang.String">
+			<column name="extra" />
+		</property>
+		<property name="primary_phone" type="java.lang.String">
+			<column name="primary_phone" />
+		</property>
+		<property name="internal_code" type="java.lang.String">
+			<column name="internal_code" />
+		</property>
+		<property name="tax_code" type="java.lang.String">
+			<column name="tax_code" />
+		</property>
+		<property name="secondary_phone" type="java.lang.String">
+			<column name="secondary_phone" />
+		</property>
+		<property name="fax" type="java.lang.String">
+			<column name="fax" />
+		</property>
+		<property name="referent" type="java.lang.String">
+			<column name="referent" />
+		</property>
+		<set name="sales" table="sales" inverse="false" lazy="false"
+			fetch="select" cascade="save-update">
+			<key>
+				<column name="id_buyer" />
+			</key>
+			<one-to-many class="itsol.luna.core.beans.Sale" />
+		</set>
+		<many-to-one name="customer"
+			class="itsol.luna.core.beans.Customer" fetch="select" lazy="false"
+			insert="false" update="false">
+			<column name="id" />
+		</many-to-one>
+	</class>
+</hibernate-mapping>

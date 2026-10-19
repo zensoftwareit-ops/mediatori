@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 13-gen-2020 16.06.42 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+	<class name="itsol.luna.core.beans.InvoiceProduct"
+		table="invoice_products">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="identity" />
+		</id>
+		<property name="name" type="java.lang.String">
+			<column name="name" />
+		</property>
+
+		<property name="vat" type="java.lang.Double">
+			<column name="vat" />
+		</property>
+		<property name="product_amount" type="java.lang.Double">
+			<column name="product_amount" />
+		</property>
+
+		<property name="idx" type="long">
+			<column name="idx" />
+		</property>
+		<many-to-one name="invoice"
+			class="itsol.luna.core.beans.Invoice">
+			<column name="id_invoice" />
+		</many-to-one>
+		<property name="unit_of_measure" type="java.lang.String">
+			<column name="unit_of_measure" />
+		</property>
+		<property name="commission" type="java.lang.Double">
+			<column name="commission" />
+		</property>
+		<property name="commission_amount" type="java.lang.Double">
+			<column name="commission_amount" />
+		</property>
+
+		<many-to-one name="sale"
+			class="itsol.luna.core.beans.Sale" fetch="select" lazy="false"
+			cascade="none">
+			<column name="id_sale" not-null="false" />
+		</many-to-one>
+	</class>
+</hibernate-mapping>

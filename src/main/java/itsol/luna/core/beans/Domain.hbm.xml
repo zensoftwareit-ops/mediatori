@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 20-lug-2020 10.12.08 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+	<class name="itsol.luna.core.beans.Domain" table="domains">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="native" />
+		</id>
+		<property name="domain" type="java.lang.String">
+			<column name="domain" />
+		</property>
+		<property name="url" type="java.lang.String">
+			<column name="url" />
+		</property>
+		<property name="res_path" type="java.lang.String">
+			<column name="res_path" />
+		</property>
+	</class>
+</hibernate-mapping>

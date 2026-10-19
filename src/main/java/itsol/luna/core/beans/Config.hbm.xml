@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 26-lug-2019 15.22.31 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+	<class name="itsol.luna.core.beans.Config" table="config">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="identity" />
+		</id>
+		<property name="pagination" type="java.lang.Integer">
+			<column name="pagination" />
+		</property>
+		<many-to-one name="sowing_year"
+			class="itsol.luna.core.beans.SowingYear" fetch="join" lazy="false">
+			<column name="id_sowing_year" />
+		</many-to-one>
+		<many-to-one name="year"
+			class="itsol.luna.core.beans.Year" fetch="join" lazy="false">
+			<column name="id_year" />
+		</many-to-one>
+	</class>
+</hibernate-mapping>

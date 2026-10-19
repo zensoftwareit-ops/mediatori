@@ -1,0 +1,84 @@
+package itsol.luna.core.actions;
+
+
+import java.util.logging.Level;
+
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.hibernate.Session;
+
+import itsol.luna.core.beans.Sale;
+import itsol.luna.core.interfaces.MyActionInterface;
+import itsol.luna.core.support.ContextSupport;
+import itsol.luna.core.support.LogSupport;
+import itsol.luna.core.support.MyActionSupport;
+import itsol.luna.core.utils.HibernateUtil;
+
+public class Sign extends MyActionSupport implements MyActionInterface {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1131227393189045778L;
+
+	private Long id_sale;
+	private String customerType;
+	
+	public Long getId_sale() {
+		return id_sale;
+	}
+	public void setId_sale(Long id_sale) {
+		this.id_sale = id_sale;
+	}
+	public String getCustomerType() {
+		return customerType;
+	}
+	public void setCustomerType(String customerType) {
+		this.customerType = customerType;
+	}
+	
+	//------------------------------ variabile sale
+		private Sale sale;
+		public Sale getSale() {
+			return sale;
+		}
+		public void setSale(Sale sale) {
+			this.sale = sale;
+		}
+	
+	public String execute() {
+		
+		String result = new String();
+		Session sx = HibernateUtil.getSessionFactory().openSession();
+		
+		try {
+
+
+				this.sale = (Sale) sx.createQuery("FROM Sale WHERE id = :id_sale")
+						.setParameter("id_sale", getId_sale())
+						.uniqueResult();
+
+
+				result = SUCCESS;
+				
+				
+
+		} catch(Exception ex) {		
+			if(ContextSupport.isDebug()) {
+				ex.printStackTrace();
+				setExcp(ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex));
+				result = ERROR_DEBUG;
+			} else {
+				setResp("Si è verificato un errore durante la ricerca del record");
+				setResp_status_ko();
+				result = ERROR;
+			}
+			LogSupport.log(op() + "Si è verificato un errore durante la ricerca del record", Level.INFO);
+			LogSupport.log(op() + ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex), Level.SEVERE);
+		} finally {
+			sx.close();
+		}
+		
+		return result;
+	}
+
+}

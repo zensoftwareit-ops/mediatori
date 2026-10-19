@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 9 dic 2020, 16:13:22 by Hibernate Tools 3.6.0.Final -->
+<hibernate-mapping>
+    <class name="itsol.luna.core.beans.ProductGroup" table="groups">
+        <id name="id" type="java.lang.Long">
+            <column name="id" />
+            <generator class="native" />
+        </id>
+        <property name="name" type="java.lang.String">
+            <column name="name" />
+        </property>
+        <property name="tag" type="java.lang.String">
+            <column name="tag" />
+        </property>
+        <property name="status" type="java.lang.String">
+            <column name="status" />
+        </property>
+    </class>
+</hibernate-mapping>

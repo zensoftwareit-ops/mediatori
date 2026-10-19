@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 9-gen-2020 16.03.06 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+	<class name="itsol.luna.core.beans.SaleCommission" table="sale_commissions">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="native" />
+		</id>
+
+		<many-to-one name="sale" class="itsol.luna.core.beans.Sale" fetch="select" lazy="false">
+			<column name="id_sale" />
+		</many-to-one>
+
+		<property name="idx" type="long">
+			<column name="idx" />
+		</property>
+
+		<property name="billed_buyer" type="java.lang.String">
+			<column name="billed_buyer" />
+		</property>
+
+
+		<property name="billed_seller" type="java.lang.String">
+			<column name="billed_seller" />
+		</property>
+		
+	
+		<property name="billed_buyer_alt" type="java.lang.String">
+			<column name="billed_buyer_alt" />
+		</property>
+		
+		<property name="billed_seller_alt" type="java.lang.String">
+			<column name="billed_seller_alt" />
+		</property>
+
+		<many-to-one name="invoice_buyer" class="itsol.luna.core.beans.Invoice" fetch="select" lazy="false">
+			<column name="id_invoice_buyer" not-null="false" />
+		</many-to-one>
+		
+
+		<many-to-one name="invoice_seller" class="itsol.luna.core.beans.Invoice" fetch="select" lazy="false">
+			<column name="id_invoice_seller" not-null="false" />
+		</many-to-one>
+		
+		<property name="seller_commission" type="java.lang.Double">
+			<column name="seller_commission" />
+		</property>
+		
+		<property name="seller_commission_amount" type="java.lang.Double">
+			<column name="seller_commission_amount" />
+		</property>
+		
+		<property name="buyer_commission" type="java.lang.Double">
+			<column name="buyer_commission" />
+		</property>
+		
+		<property name="buyer_commission_amount" type="java.lang.Double">
+			<column name="buyer_commission_amount" />
+		</property>
+
+		<property name="product_amount" type="java.lang.Double">
+			<column name="product_amount" />
+		</property>
+
+
+
+	</class>
+</hibernate-mapping>

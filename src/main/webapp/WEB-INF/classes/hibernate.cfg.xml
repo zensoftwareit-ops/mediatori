@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+
+	<session-factory>
+
+		<mapping resource="itsol/luna/core/beans/Config.hbm.xml" />
+		<mapping resource="itsol/luna/core/beans/Admin.hbm.xml" />
+
+		<mapping resource="itsol/luna/core/beans/Customer.hbm.xml" />
+		<mapping resource="itsol/luna/core/beans/Buyer.hbm.xml" />
+		<mapping resource="itsol/luna/core/beans/Seller.hbm.xml" />
+
+		<mapping resource="itsol/luna/core/beans/Product.hbm.xml" />
+		<mapping resource="itsol/luna/core/beans/ProductGroup.hbm.xml" />
+
+		<mapping resource="itsol/luna/core/beans/Payment.hbm.xml" />
+		<mapping
+			resource="itsol/luna/core/beans/PaymentInstallment.hbm.xml" />
+
+		<mapping resource="itsol/luna/core/beans/Sale.hbm.xml" />
+		<mapping resource="itsol/luna/core/beans/SaleProduct.hbm.xml" />
+		<mapping
+			resource="itsol/luna/core/beans/SalePaymentInstallment.hbm.xml" />
+		<mapping resource="itsol/luna/core/beans/SaleCounter.hbm.xml" />
+		<mapping resource="itsol/luna/core/beans/SaleCommission.hbm.xml" />
+
+		<mapping
+			resource="itsol/luna/core/beans/ContractTemplate.hbm.xml" />
+
+		<mapping resource="itsol/luna/core/beans/Invoice.hbm.xml" />
+		<mapping
+			resource="itsol/luna/core/beans/InvoiceProduct.hbm.xml" />
+		<mapping
+			resource="itsol/luna/core/beans/InvoiceCounter.hbm.xml" />
+
+		<mapping resource="itsol/luna/core/beans/Year.hbm.xml" />
+		<mapping resource="itsol/luna/core/beans/SowingYear.hbm.xml" />
+
+		<mapping resource="itsol/luna/core/beans/Media.hbm.xml" />
+
+		<mapping resource="itsol/luna/core/beans/YieldMeasure.hbm.xml" />
+
+		<mapping resource="itsol/luna/core/beans/Domain.hbm.xml" />
+		<mapping resource="itsol/luna/core/beans/Analisi.hbm.xml" />
+		
+		<mapping resource="itsol/luna/core/beans/FastSale.hbm.xml" />
+		<mapping resource="itsol/luna/core/beans/FastCustomer.hbm.xml" />
+
+
+
+	</session-factory>
+
+</hibernate-configuration>

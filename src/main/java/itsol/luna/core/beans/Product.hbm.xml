@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 9-gen-2020 11.59.33 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+	<class name="itsol.luna.core.beans.Product" table="products">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="identity" />
+		</id>
+		<property name="insert_date" type="java.util.Date">
+			<column name="insert_date" />
+		</property>
+		<property name="update_date" type="java.util.Date">
+			<column name="update_date" />
+		</property>
+		<property name="name" type="java.lang.String">
+			<column name="name" />
+		</property>
+		<property name="internal_code" type="java.lang.String">
+			<column name="internal_code" />
+		</property>
+		<property name="description" type="java.lang.String">
+			<column name="description" />
+		</property>
+		<property name="vat" type="java.lang.Double">
+			<column name="vat" />
+		</property>
+		<property name="unit_of_measure" type="java.lang.String">
+			<column name="unit_of_measure" />
+		</property>
+		<property name="buyer_commission" type="java.lang.Double">
+			<column name="buyer_commission" />
+		</property>
+		<property name="seller_commission" type="java.lang.Double">
+			<column name="seller_commission" />
+		</property>
+		<property name="contract_template" type="java.lang.String">
+			<column name="contract_template" />
+		</property>
+		<property name="groups" type="java.lang.String">
+			<column name="groups" />
+		</property>
+		<many-to-one name="admin"
+			class="itsol.luna.core.beans.Admin" fetch="select" lazy="false">
+			<column name="id_admin" />
+		</many-to-one>
+	</class>
+</hibernate-mapping>

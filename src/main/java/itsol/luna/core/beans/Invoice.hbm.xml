@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 13-gen-2020 16.06.42 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+	<class name="itsol.luna.core.beans.Invoice" table="invoices">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="identity" />
+		</id>
+		<many-to-one name="customer"
+			class="itsol.luna.core.beans.Customer" fetch="select" lazy="false">
+			<column name="id_customer" />
+		</many-to-one>
+		<property name="insert_date" type="java.util.Date">
+			<column name="insert_date" />
+		</property>
+		<property name="update_date" type="java.util.Date">
+			<column name="update_date" />
+		</property>
+		<property name="invoice_date" type="java.util.Date">
+			<column name="invoice_date" />
+		</property>
+		<property name="expire_date" type="java.util.Date">
+			<column name="expire_date" />
+		</property>
+		<property name="total" type="java.lang.Double">
+			<column name="total" />
+		</property>
+		<property name="vat_total" type="java.lang.Double">
+			<column name="vat_total" />
+		</property>
+		<property name="taxable_total" type="java.lang.Double">
+			<column name="taxable_total" />
+		</property>
+		<list name="products" table="invoice_products" lazy="false"
+			inverse="true" fetch="select" cascade="save-update">
+			<key>
+				<column name="id_invoice" />
+			</key>
+			<list-index column="idx" />
+			<one-to-many class="itsol.luna.core.beans.InvoiceProduct" />
+		</list>
+
+		<many-to-one name="year"
+			class="itsol.luna.core.beans.Year">
+			<column name="id_year" />
+		</many-to-one>
+		<many-to-one name="admin"
+			class="itsol.luna.core.beans.Admin" fetch="select" lazy="false">
+			<column name="id_admin" />
+		</many-to-one>
+		<property name="number" type="java.lang.String">
+			<column name="number" />
+		</property>
+		<property name="invoice_type" type="java.lang.String">
+			<column name="invoice_type" />
+		</property>
+		<property name="payed" type="java.lang.String">
+			<column name="payed" />
+		</property>
+	</class>
+</hibernate-mapping>

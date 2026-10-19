@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 20-lug-2020 10.12.08 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+	<class name="itsol.luna.core.beans.Admin" table="admins">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="native" />
+		</id>
+		<property name="first_name" type="java.lang.String">
+			<column name="first_name" />
+		</property>
+		<property name="last_name" type="java.lang.String">
+			<column name="last_name" />
+		</property>
+		<property name="username" type="java.lang.String">
+			<column name="username" />
+		</property>
+		<property name="password" type="java.lang.String">
+			<column name="password" />
+		</property>
+		<property name="insert_date" type="java.util.Date">
+			<column name="insert_date" />
+		</property>
+		<property name="update_date" type="java.util.Date">
+			<column name="update_date" />
+		</property>
+		<property name="last_activity_date" type="java.util.Date">
+			<column name="last_activity_date" />
+		</property>
+		<property name="level" type="java.lang.String">
+			<column name="level" />
+		</property>
+		<property name="invoice_template" type="java.lang.String">
+			<column name="invoice_template" />
+		</property>
+		<property name="smsEnabled" type="java.lang.String">
+			<column name="smsEnabled" />
+		</property>
+		<property name="smsApiKey" type="java.lang.String">
+			<column name="smsApiKey" />
+		</property>
+		<set name="sale_counters" inverse="true" table="sale_counters"
+			lazy="false" fetch="select" cascade="none" order-by="id DESC">
+			<key>
+				<column name="id_admin" />
+			</key>
+			<one-to-many class="itsol.luna.core.beans.SaleCounter" />
+		</set>
+		<set name="invoice_counters" inverse="true"
+			table="invoice_counters" lazy="false" fetch="select" cascade="none"
+			order-by="id DESC">
+			<key>
+				<column name="id_admin" />
+			</key>
+			<one-to-many class="itsol.luna.core.beans.InvoiceCounter" />
+		</set>
+	</class>
+</hibernate-mapping>

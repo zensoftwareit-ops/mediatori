@@ -1,0 +1,8 @@
+/bin/
+/build/
+/dist/*.war
+/src/main/java/app.properties
+*.class
+*.war
+**/CVS/
+

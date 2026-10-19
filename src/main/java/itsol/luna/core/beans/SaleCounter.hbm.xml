@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 20-lug-2020 10.12.08 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+	<class name="itsol.luna.core.beans.SaleCounter"
+		table="sale_counters">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="native" />
+		</id>
+		<property name="number" type="java.lang.Integer">
+			<column name="number" />
+		</property>
+		<many-to-one name="year"
+			class="itsol.luna.core.beans.SowingYear" fetch="select" lazy="false">
+			<column name="id_year" />
+		</many-to-one>
+		<many-to-one name="admin"
+			class="itsol.luna.core.beans.Admin" fetch="select" lazy="false">
+			<column name="id_admin" />
+		</many-to-one>
+	</class>
+</hibernate-mapping>

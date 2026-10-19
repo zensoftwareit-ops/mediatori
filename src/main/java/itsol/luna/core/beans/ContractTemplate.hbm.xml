@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 10-gen-2020 11.22.18 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+	<class name="itsol.luna.core.beans.ContractTemplate"
+		table="contract_templates">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="native" />
+		</id>
+		<property name="description" type="java.lang.String">
+			<column name="description" />
+		</property>
+		<property name="filename" type="java.lang.String">
+			<column name="filename" />
+		</property>
+		<property name="action" type="java.lang.String">
+			<column name="action" />
+		</property>
+		<many-to-one name="admin"
+			class="itsol.luna.core.beans.Admin" fetch="select" lazy="false">
+			<column name="id_admin" />
+		</many-to-one>
+	</class>
+</hibernate-mapping>

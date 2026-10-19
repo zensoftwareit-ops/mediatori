@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 29-giu-2020 14.33.55 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+	<class name="itsol.luna.core.beans.Payment" table="payments">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="native" />
+		</id>
+		<property name="ptag" type="java.lang.String">
+			<column name="ptag" />
+		</property>
+		<property name="description" type="java.lang.String">
+			<column name="description" />
+		</property>
+		<property name="installments" type="java.lang.Integer">
+			<column name="installments" />
+		</property>
+		<property name="fixed_date" type="java.lang.String">
+			<column name="fixed_date" />
+		</property>
+		<list name="pinstallments" table="payment_installments"
+			lazy="false" inverse="true" fetch="select" cascade="save-update">
+			<key>
+				<column name="id_payment" not-null="true" />
+			</key>
+			<list-index column="idx" />
+			<one-to-many
+				class="itsol.luna.core.beans.PaymentInstallment" />
+		</list>
+		<many-to-one name="admin"
+			class="itsol.luna.core.beans.Admin" fetch="select" lazy="false">
+			<column name="id_admin" />
+		</many-to-one>
+	</class>
+</hibernate-mapping>

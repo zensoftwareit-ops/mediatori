@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 9-gen-2020 16.03.06 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+	<class name="itsol.luna.core.beans.FastSale" table="sales">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="native" />
+		</id>
+		<property name="insert_date" type="java.util.Date">
+			<column name="insert_date" />
+		</property>
+		<property name="update_date" type="java.util.Date">
+			<column name="update_date" />
+		</property>
+		<property name="sale_date" type="java.util.Date">
+			<column name="sale_date" />
+		</property>
+	
+
+
+		<many-to-one name="seller"
+			class="itsol.luna.core.beans.FastCustomer" fetch="select" lazy="false">
+			<column name="id_seller" />
+		</many-to-one>
+		
+		<many-to-one name="buyer"
+			class="itsol.luna.core.beans.FastCustomer" fetch="select" lazy="false">
+			<column name="id_buyer" />
+		</many-to-one>
+		
+		<many-to-one name="year"
+			class="itsol.luna.core.beans.SowingYear">
+			<column name="id_year" />
+		</many-to-one>
+		
+		<many-to-one name="contract_template"
+			class="itsol.luna.core.beans.ContractTemplate" fetch="select"
+			lazy="false">
+			<column name="id_contract_template" />
+		</many-to-one>
+		
+
+		<one-to-one name="product" class="itsol.luna.core.beans.SaleProduct" cascade="save-update"></one-to-one>
+
+
+		<property name="number" type="java.lang.Integer">
+			<column name="number" />
+		</property>
+
+		<many-to-one name="admin"
+			class="itsol.luna.core.beans.Admin" fetch="select" lazy="false">
+			<column name="id_admin" />
+		</many-to-one>
+		
+		<property name="otpSeller" type="java.lang.String">
+			<column name="otpSeller" />
+		</property>
+		<property name="signedSeller" type="java.lang.String">
+			<column name="signedSeller" />
+		</property>
+		<property name="signedSellerDate" type="java.util.Date">
+			<column name="signedSellerDate" />
+		</property>
+		
+		
+		<property name="otpBuyer" type="java.lang.String">
+			<column name="otpBuyer" />
+		</property>
+		<property name="signedBuyer" type="java.lang.String">
+			<column name="signedBuyer" />
+		</property>
+		<property name="signedBuyerDate" type="java.util.Date">
+			<column name="signedBuyerDate" />
+		</property>
+		
+		<property name="otpSellerSent" type="java.lang.String">
+			<column name="otpSellerSent" />
+		</property>
+		<property name="otpBuyerSent" type="java.lang.String">
+			<column name="otpBuyerSent" />
+		</property>
+
+
+
+	</class>
+</hibernate-mapping>

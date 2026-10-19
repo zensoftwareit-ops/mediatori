@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 9-gen-2020 14.18.05 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+	<class name="itsol.luna.core.beans.SaleProduct"
+		table="sale_products">
+		<id name="id_sale" type="java.lang.Long">
+			<column name="id_sale" />
+			<generator class="foreign">
+				<param name="property">sale</param>
+			</generator>
+		</id>
+
+		<one-to-one name="sale" class="itsol.luna.core.beans.Sale"
+			constrained="true"></one-to-one>
+
+		<many-to-one name="product"
+			class="itsol.luna.core.beans.Product" fetch="select" lazy="false">
+			<column name="id_product" />
+		</many-to-one>
+
+		<property name="name" type="java.lang.String">
+			<column name="name" />
+		</property>
+		<property name="taxable" type="java.lang.Double">
+			<column name="taxable" />
+		</property>
+		<property name="amount" type="java.lang.Double">
+			<column name="amount" />
+		</property>
+		<property name="total" type="java.lang.Double">
+			<column name="total" />
+		</property>
+		<property name="unit_of_measure" type="java.lang.String">
+			<column name="unit_of_measure" />
+		</property>
+
+		<property name="product_amount" type="java.lang.Double">
+			<column name="product_amount" />
+		</property>
+		<property name="end_of_stock" type="java.lang.String">
+			<column name="end_of_stock" />
+		</property>
+		<property name="vat" type="java.lang.Double">
+			<column name="vat" />
+		</property>
+		<property name="vat_amount" type="java.lang.Double">
+			<column name="vat_amount" />
+		</property>
+		<property name="quality" type="java.lang.String">
+			<column name="quality" />
+		</property>
+		<property name="humidity" type="java.lang.String">
+			<column name="humidity" />
+		</property>
+		<property name="grains_yield" type="java.lang.Integer">
+			<column name="grains_yield" />
+		</property>
+		<property name="global_yield" type="java.lang.Integer">
+			<column name="global_yield" />
+		</property>
+		<property name="defects" type="java.lang.String">
+			<column name="defects" />
+		</property>
+		<property name="d_red_grains" type="java.lang.Double">
+			<column name="d_red_grains" />
+		</property>
+		<property name="d_impurity" type="java.lang.String">
+			<column name="d_impurity" />
+		</property>
+		<property name="d_damaged_grains" type="java.lang.Double">
+			<column name="d_damaged_grains" />
+		</property>
+		<property name="d_edible_extra" type="java.lang.String">
+			<column name="d_edible_extra" />
+		</property>
+		<property name="d_malformations" type="java.lang.String">
+			<column name="d_malformations" />
+		</property>
+		<property name="d_pinstriped_grains" type="java.lang.String">
+			<column name="d_pinstriped_grains" />
+		</property>
+		<property name="d_heated_damaged_grains" type="java.lang.String">
+			<column name="d_heated_damaged_grains" />
+		</property>
+		<property name="d_non_edible_extra" type="java.lang.String">
+			<column name="d_non_edible_extra" />
+		</property>
+		<property name="triciclazolo" type="java.lang.String">
+			<column name="triciclazolo" />
+		</property>
+		<property name="harvest_year" type="java.lang.String">
+			<column name="harvest_year" />
+		</property>
+		<property name="amount_type" type="java.lang.String">
+			<column name="amount_type" />
+		</property>
+		
+
+	</class>
+</hibernate-mapping>

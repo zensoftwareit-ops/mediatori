@@ -1,0 +1,1102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+    "http://struts.apache.org/dtds/struts-2.5.dtd">
+
+<struts>
+
+	<constant name="struts.devMode" value="true" />
+	<constant name="struts.enable.SlashesInActionNames"
+		value="true" />
+	<constant name="struts.custom.i18n.resources" value="global" />
+	<constant name="struts.action.excludePattern"
+		value="/GetImg, /GetProductJSON, /GetCustomerJSON, /GetPaymentJSON, /DocDownload" />
+	<constant name="struts.multipart.maxSize" value="10000000" />
+	<constant name="struts.multipart.parser"
+		value="jakarta-stream" />
+
+	<package name="actions" namespace="/" extends="struts-default">
+	
+		<action name="testsms" class="itsol.luna.core.actions.TestSms">
+			<result name="success">/index.jsp</result>
+		</action>
+
+		<action name="index" class="itsol.luna.core.actions.Welcome">
+			<result name="success">/index.jsp</result>
+			<result name="success_nologin">/index_nologin.jsp</result>
+			<result name="error">/error.jsp</result>
+		</action>
+
+		<action name="login" class="itsol.luna.core.actions.Login">
+			<result name="success" type="redirectAction">
+				<param name="actionName">index</param>
+			</result>
+			<result name="auth_error" type="redirectAction">
+				<param name="actionName">index?auth=error</param>
+			</result>
+			<result name="input">/index_nologin.jsp</result>
+			<result name="error">/error.jsp</result>
+		</action>
+
+		<action name="logout" class="itsol.luna.core.actions.Logout">
+			<result name="success" type="redirectAction">
+				<param name="actionName">index</param>
+			</result>
+		</action>
+
+
+
+
+
+		<action name="customers"
+			class="itsol.luna.core.actions.Customers">
+			<result name="success">/customers.jsp</result>
+			<result name="error">/customers.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="customers/list"
+			class="itsol.luna.core.actions.inc.CustomersList">
+			<result name="success">/inc/customers_list.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/inc/error.jsp</result>
+		</action>
+
+		<action name="customers/new"
+			class="itsol.luna.core.actions.CustomerNew">
+			<result name="success">/form_customer.jsp</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">customers</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="customers/manage/*"
+			class="itsol.luna.core.actions.CustomerManage">
+			<param name="id_customer">{1}</param>
+			<result name="success">/form_customer.jsp</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">customers</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="customers/save"
+			class="itsol.luna.core.actions.CustomerSave">
+			<result name="success" type="redirectAction">
+				<param name="actionName">${redirectAction}</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">customers</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+			<result name="input">/form_customer.jsp</result>
+		</action>
+
+		<action name="customers/delete/*"
+			class="itsol.luna.core.actions.CustomerDelete">
+			<param name="id_customer">{1}</param>
+			<result name="success" type="redirectAction">
+				<param name="actionName">customers</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">customers</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+
+
+
+
+
+		<action name="products"
+			class="itsol.luna.core.actions.Products">
+			<result name="success">/products.jsp</result>
+			<result name="error">/products.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="products/list"
+			class="itsol.luna.core.actions.inc.ProductsList">
+			<result name="success">/inc/products_list.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/inc/error.jsp</result>
+		</action>
+
+		<action name="products/new"
+			class="itsol.luna.core.actions.ProductNew">
+			<result name="success">/form_product.jsp</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">products</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="products/manage/*"
+			class="itsol.luna.core.actions.ProductManage">
+			<param name="id_product">{1}</param>
+			<result name="success">/form_product.jsp</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">products</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="products/save"
+			class="itsol.luna.core.actions.ProductSave">
+			<result name="success" type="redirectAction">
+				<param name="actionName">${redirectAction}</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">${redirectAction}</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+			<result name="input">/form_product.jsp</result>
+		</action>
+
+		<action name="products/delete/*"
+			class="itsol.luna.core.actions.ProductDelete">
+			<param name="id_product">{1}</param>
+			<result name="success" type="redirectAction">
+				<param name="actionName">products</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">products</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+
+		<action name="analisi"
+			class="itsol.luna.core.actions.Analisi">
+			<result name="success">/analisi.jsp</result>
+			<result name="error">/analisi.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="analisi/list"
+			class="itsol.luna.core.actions.inc.AnalisiList">
+			<result name="success">/inc/analisi_list.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/inc/error.jsp</result>
+		</action>
+
+		<action name="analisi/new"
+			class="itsol.luna.core.actions.AnalisiNew">
+			<result name="success">/form_analisi.jsp</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">analisi</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="analisi/manage/*"
+			class="itsol.luna.core.actions.AnalisiManage">
+			<param name="id_analisi">{1}</param>
+			<result name="success">/form_analisi.jsp</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">analisi</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="analisi/save"
+			class="itsol.luna.core.actions.AnalisiSave">
+			<result name="success" type="redirectAction">
+				<param name="actionName">${redirectAction}</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">${redirectAction}</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+			<result name="input">/form_analisi.jsp</result>
+		</action>
+
+
+
+		<action name="sales" class="itsol.luna.core.actions.Sales">
+			<result name="success">/sales.jsp</result>
+			<result name="error">/sales.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="sales/list"
+			class="itsol.luna.core.actions.inc.SalesList">
+			<result name="success">/inc/sales_list.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/inc/error.jsp</result>
+		</action>
+
+		<action name="sales/new"
+			class="itsol.luna.core.actions.SaleNew">
+			<result name="success">/form_sale.jsp</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">sales</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="sales/manage/*"
+			class="itsol.luna.core.actions.SaleManage">
+			<param name="id_sale">{1}</param>
+			<result name="success">/form_sale.jsp</result>
+			<result name="success_modal">/modal_form_sale.jsp</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">sales</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="sales/save"
+			class="itsol.luna.core.actions.SaleSave">
+			<result name="success" type="redirectAction">
+				<param name="actionName">${redirectAction}</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">${redirectAction}</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+			<result name="input">/form_sale.jsp</result>
+		</action>
+
+		<action name="sales/delete/*"
+			class="itsol.luna.core.actions.SaleDelete">
+			<param name="id_sale">{1}</param>
+			<result name="success" type="redirectAction">
+				<param name="actionName">sales</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">sales</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+		
+				<action name="sales/create-pdf/*"
+			class="itsol.luna.core.actions.SaleCreatePDF">
+			<param name="id_sale">{1}</param>
+			<result name="success">/download_page.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/error.jsp</result>
+		</action>
+
+		<action name="sales/create-pdf-2/*"
+			class="itsol.luna.core.actions.SaleCreatePDF2">
+			<param name="id_sale">{1}</param>
+			<result name="success">/download_page.jsp</result>
+			<result name="success_nosession">/download_page_nosession.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/error.jsp</result>
+		</action>
+
+		<action name="sales/create-pdf-3/*"
+			class="itsol.luna.core.actions.SaleCreatePDF3">
+			<param name="id_sale">{1}</param>
+			<result name="success">/download_page.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/error.jsp</result>
+		</action>
+
+		<action name="sales/create-pdf-4/*"
+			class="itsol.luna.core.actions.SaleCreatePDF4">
+			<param name="id_sale">{1}</param>
+			<result name="success">/download_page.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/error.jsp</result>
+		</action>
+		
+				<action name="sales/create-pdf-5/*"
+			class="itsol.luna.core.actions.SaleCreatePDF5">
+			<param name="id_sale">{1}</param>
+			<result name="success">/download_page.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/error.jsp</result>
+		</action>
+
+		<action name="sales/send-mail/*"
+			class="itsol.luna.core.actions.SaleSendMail">
+			<param name="id_sale">{1}</param>
+			<result name="success" type="redirectAction">
+				<param name="actionName">sales</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/error.jsp</result>
+		</action>
+
+
+
+
+		<action name="payments"
+			class="itsol.luna.core.actions.Payments">
+			<result name="success">/payments.jsp</result>
+			<result name="error">/payments.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="payments/list"
+			class="itsol.luna.core.actions.inc.PaymentsList">
+			<result name="success">/inc/payments_list.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/inc/error.jsp</result>
+		</action>
+
+		<action name="payments/new"
+			class="itsol.luna.core.actions.PaymentNew">
+			<result name="success">/form_payment.jsp</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">payments</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="payments/manage/*"
+			class="itsol.luna.core.actions.PaymentManage">
+			<param name="id_payment">{1}</param>
+			<result name="success">/form_payment.jsp</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">payments</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="payments/save"
+			class="itsol.luna.core.actions.PaymentSave">
+			<result name="success" type="redirectAction">
+				<param name="actionName">${redirectAction}</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">${redirectAction}</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+			<result name="input">/form_payment.jsp</result>
+		</action>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		<action name="deadlines"
+			class="itsol.luna.core.actions.Deadlines">
+			<result name="success">/deadlines.jsp</result>
+			<result name="error">/deadlines.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="deadlines/list"
+			class="itsol.luna.core.actions.inc.DeadlinesList">
+			<result name="success">/inc/deadlines_list.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/inc/error.jsp</result>
+		</action>
+
+		<action name="deadlines/print"
+			class="itsol.luna.core.actions.DeadlineCreatePDF">
+			<result name="none"></result>
+		</action>
+
+
+
+		<action name="commissions"
+			class="itsol.luna.core.actions.Commissions">
+			<result name="success">/commissions.jsp</result>
+			<result name="error">/commissions.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="commissions/list"
+			class="itsol.luna.core.actions.inc.CommissionsList">
+			<result name="success">/inc/commissions_list.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/inc/error.jsp</result>
+		</action>
+
+
+		<action name="commissions/print"
+			class="itsol.luna.core.actions.CommissionCreatePDF">
+			<result name="none"></result>
+		</action>
+		
+				<action name="analisi/print"
+			class="itsol.luna.core.actions.AnalisiCreatePDF">
+			<result name="none"></result>
+		</action>
+		
+		<action name="commissions/xls"
+			class="itsol.luna.core.actions.CommissionCreateXLS">
+			<result name="none"></result>
+		</action>
+		
+		
+		<action name="statistics"
+			class="itsol.luna.core.actions.Statistics">
+			<result name="success">/statistics.jsp</result>
+			<result name="error">/statistics.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="statistics/list"
+			class="itsol.luna.core.actions.inc.StatisticsList">
+			<result name="success">/inc/statistics_list.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/inc/error.jsp</result>
+		</action>
+		
+		<action name="statistics/print" class="itsol.luna.core.actions.StatisticsCreatePDF">
+			<result name="none"></result>
+		</action>
+		
+		<action name="statistics/xls" class="itsol.luna.core.actions.StatisticsCreateXLS">
+			<result name="none"></result>
+		</action>
+
+
+
+		<action name="invoices"
+			class="itsol.luna.core.actions.Invoices">
+			<result name="success">/invoices.jsp</result>
+			<result name="error">/invoices.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="invoices/list"
+			class="itsol.luna.core.actions.inc.InvoicesList">
+			<result name="success">/inc/invoices_list.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/inc/error.jsp</result>
+		</action>
+
+
+
+
+		<action name="invoices/from-buyer/*"
+			class="itsol.luna.core.actions.InvoiceNewFromBuyer">
+			<param name="id_buyer">{1}</param>
+			<result name="success" type="redirectAction">
+				<param name="actionName">invoices</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">invoices</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="invoices/from-seller/*"
+			class="itsol.luna.core.actions.InvoiceNewFromSeller">
+			<param name="id_seller">{1}</param>
+			<result name="success" type="redirectAction">
+				<param name="actionName">invoices</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">invoices</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+		
+		<action name="invoices/set-billed-buyer/*"
+			class="itsol.luna.core.actions.SetBilledBuyer">
+			<param name="id_buyer">{1}</param>
+			<result name="success" type="redirectAction">
+				<param name="actionName">commissions</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+				<param name="id_customer">${id_customer}</param>
+				<param name="date_from">${date_from}</param>
+				<param name="date_to">${date_to}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">commissions</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+				<param name="id_customer">${id_customer}</param>
+				<param name="date_from">${date_from}</param>
+				<param name="date_to">${date_to}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="invoices/set-billed-seller/*"
+			class="itsol.luna.core.actions.SetBilledSeller">
+			<param name="id_seller">{1}</param>
+			<result name="success" type="redirectAction">
+				<param name="actionName">commissions</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+				<param name="id_customer">${id_customer}</param>
+				<param name="date_from">${date_from}</param>
+				<param name="date_to">${date_to}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">commissions</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+				<param name="id_customer">${id_customer}</param>
+				<param name="date_from">${date_from}</param>
+				<param name="date_to">${date_to}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="invoices/create-pdf/*"
+			class="itsol.luna.core.actions.InvoiceCreatePDF">
+			<param name="id_invoice">{1}</param>
+			<result name="success">/download_page.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/error.jsp</result>
+		</action>
+		
+		<action name="invoices/set-payed/*"
+			class="itsol.luna.core.actions.InvoiceSetPayed">
+			<param name="id_invoice">{1}</param>
+			<result name="success" type="redirectAction">
+				<param name="actionName">invoices</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">invoices</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="invoices/delete/*"
+			class="itsol.luna.core.actions.InvoiceDelete">
+			<param name="id_invoice">{1}</param>
+			<result name="success" type="redirectAction">
+				<param name="actionName">invoices</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">invoices</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+
+
+		<action name="show_log" class="itsol.luna.core.actions.SuperShowLog">
+			<result name="success">/show_log.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nogrants">/nogrants.jsp</result>
+			<result name="error">/error.jsp</result>
+		</action>
+
+
+
+		<action name="change_year"
+			class="itsol.luna.core.actions.ChangeYear">
+			<result name="success" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="change_sowing_year"
+			class="itsol.luna.core.actions.ChangeSowingYear">
+			<result name="success" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+
+		<action name="samples_measures"
+			class="itsol.luna.core.actions.SamplesMeasures">
+			<result name="success">/samples_measures.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/error.jsp</result>
+		</action>
+
+		<action name="samples_measures/list"
+			class="itsol.luna.core.actions.inc.SamplesMeasuresList">
+			<result name="success">/inc/samples_measures_list.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/error.jsp</result>
+		</action>
+
+		<action name="samples_measures/save"
+			class="itsol.luna.core.actions.SamplesMeasureSave">
+			<result name="success" type="redirectAction">
+				<param name="actionName">${redirectAction}</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+				<param name="id_customer">${measure.customer.id}</param>
+				<param name="id_product">${measure.product.id}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/error.jsp</result>
+			<result name="input">/samples_measures.jsp</result>
+		</action>
+
+		<action name="samples_measures/delete/*"
+			class="itsol.luna.core.actions.SampleMeasureDelete">
+			<param name="id_measure">{1}</param>
+			<result name="success" type="redirectAction">
+				<param name="actionName">samples_measures</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">samples_measures</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
+		<action name="samples_measures/print"
+			class="itsol.luna.core.actions.SampleMeasureCreatePDF">
+			<result name="none"></result>
+		</action>
+
+		<action name="samples_measures/label/*"
+			class="itsol.luna.core.actions.SampleMeasureCreateLabel">
+			<param name="id_measure">{1}</param>
+			<result name="none"></result>
+		</action>
+
+		<action name="samples_measures/xls"
+			class="itsol.luna.core.actions.SampleMeasureCreateXLS">
+			<result name="none"></result>
+		</action>
+
+
+		<action name="sales/sale-pdf-1/*" class="itsol.luna.core.actions.SaleCreatePDFN1">
+			<param name="id_sale">{1}</param>
+			<result name="none"></result>
+		</action>
+		
+		<action name="sales/sale-pdf-2/*" class="itsol.luna.core.actions.SaleCreatePDFN2">
+			<param name="id_sale">{1}</param>
+			<result name="none"></result>
+		</action>
+
+		<action name="modal_close" class="itsol.luna.core.actions.Welcome">
+			<result name="success">/modal_close.jsp</result>
+		</action>
+		
+		<action name="customers/pdf/*" class="itsol.luna.core.actions.CustomerCreatePDF">
+			<param name="id_customer">{1}</param>
+			<result name="none"></result>
+		</action>
+		
+		
+		
+		
+		<action name="sales/send-otp/*"
+			class="itsol.luna.core.actions.SendOTP">
+			<param name="id_sale">{1}</param>
+			<result name="success" type="redirectAction">
+				<param name="actionName">sales</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/error.jsp</result>
+		</action>
+		
+		<action name="sales/sign/*"
+			class="itsol.luna.core.actions.Sign">
+			<param name="id_sale">{1}</param>
+			<result name="success">/modal_sign.jsp</result>
+		</action>
+		
+		<action name="sales/selfsign/*"
+			class="itsol.luna.core.actions.Sign">
+			<param name="id_sale">{1}</param>
+			<result name="success">/selfsign1.jsp</result>
+		</action>
+		
+		<action name="sales/sign-save"
+			class="itsol.luna.core.actions.SignSave">
+			<result name="success" type="redirectAction">
+				<param name="actionName">modal_close</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">modal_close</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/error.jsp</result>
+		</action>
+		
+		<action name="sales/selfsign-save"
+			class="itsol.luna.core.actions.SignSave">
+			<result name="success">/sign-ok.jsp</result>
+			<result name="error">/error.jsp</result>
+		</action>
+		
+				<action name="sales/sign-restart/*"
+			class="itsol.luna.core.actions.RestartOTP">
+			<param name="id_sale">{1}</param>
+			<result name="success" type="redirectAction">
+				<param name="actionName">sales</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error">/error.jsp</result>
+		</action>
+
+	</package>
+
+</struts>

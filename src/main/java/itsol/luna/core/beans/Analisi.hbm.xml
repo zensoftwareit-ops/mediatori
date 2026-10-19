@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generated 20 nov 2023, 09:15:17 by Hibernate Tools 3.6.2.Final --><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping auto-import="true" default-access="property" default-cascade="none" default-lazy="true">
+    <class dynamic-insert="false" dynamic-update="false" mutable="true" name="itsol.luna.core.beans.Analisi" optimistic-lock="version" polymorphism="implicit" select-before-update="false" table="analisi">
+        <id name="id" type="java.lang.Long">
+            <column name="ID"/>
+            <generator class="native"/>
+        </id>
+        <property generated="never" lazy="false" name="id_admin" optimistic-lock="true" type="java.lang.Long" unique="false">
+            <column name="IDADMIN"/>
+        </property>
+        <property access="field" generated="never" lazy="false" name="nCampione" optimistic-lock="true" type="java.lang.String" unique="false">
+            <column name="NCAMPIONE"/>
+        </property>
+        <many-to-one class="itsol.luna.core.beans.Product" embed-xml="true" fetch="join" insert="true" name="prodotto" not-found="exception" optimistic-lock="true" unique="false" update="true" lazy="false">
+            <column name="PRODOTTO"/>
+        </many-to-one>
+        <many-to-one class="itsol.luna.core.beans.Customer" embed-xml="true" fetch="join" insert="true" name="cliente" not-found="exception" optimistic-lock="true" unique="false" update="true" lazy="false">
+            <column name="CLIENTE"/>
+        </many-to-one>
+        <property generated="never" lazy="false" name="lotto" optimistic-lock="true" type="java.lang.String" unique="false">
+            <column name="LOTTO"/>
+        </property>
+        <property generated="never" lazy="false" name="cadmio" optimistic-lock="true" type="java.lang.String" unique="false">
+            <column name="CADMIO"/>
+        </property>
+        <property generated="never" lazy="false" name="arsenicoTot" optimistic-lock="true" type="java.lang.String" unique="false">
+            <column name="ARSENICOTOT"/>
+        </property>
+        <property generated="never" lazy="false" name="arsenicoInorganico" optimistic-lock="true" type="java.lang.String" unique="false">
+            <column name="ARSENICOINORGANICO"/>
+        </property>
+        <property generated="never" lazy="false" name="nichel" optimistic-lock="true" type="java.lang.String" unique="false">
+            <column name="NICHEL"/>
+        </property>
+        <property generated="never" lazy="false" name="altreAnalisi" optimistic-lock="true" type="java.lang.String" unique="false">
+            <column name="ALTREANALISI"/>
+        </property>
+        <property generated="never" lazy="false" name="note" optimistic-lock="true" type="java.lang.String" unique="false">
+            <column name="NOTE"/>
+        </property>
+        <property generated="never" lazy="false" name="costo" optimistic-lock="true" type="java.lang.Double" unique="false">
+            <column name="COSTO"/>
+        </property>
+        <property generated="never" lazy="false" name="pagato" optimistic-lock="true" type="java.lang.String" unique="false">
+            <column name="PAGATO"/>
+        </property>
+                <property generated="never" lazy="false" name="cadmioFl" optimistic-lock="true" type="java.lang.String" unique="false">
+            <column name="CADMIOFL"/>
+        </property>
+                <property generated="never" lazy="false" name="arsenicoFl" optimistic-lock="true" type="java.lang.String" unique="false">
+            <column name="ARSENICOFL"/>
+        </property>
+        <property generated="never" lazy="false" name="nichelFl" optimistic-lock="true" type="java.lang.String" unique="false">
+            <column name="NICHELFL"/>
+        </property>
+    </class>
+</hibernate-mapping>

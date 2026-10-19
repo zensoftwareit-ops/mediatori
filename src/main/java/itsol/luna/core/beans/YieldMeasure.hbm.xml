@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 23-lug-2020 8.50.41 by Hibernate Tools 3.5.0.Final -->
+<hibernate-mapping>
+	<class name="itsol.luna.core.beans.YieldMeasure"
+		table="yield_measures">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="native" />
+		</id>
+		<many-to-one name="admin"
+			class="itsol.luna.core.beans.Admin" fetch="select" lazy="false">
+			<column name="id_admin" />
+		</many-to-one>
+		<many-to-one name="customer"
+			class="itsol.luna.core.beans.Customer" fetch="select" lazy="false">
+			<column name="id_customer" />
+		</many-to-one>
+		<many-to-one name="product"
+			class="itsol.luna.core.beans.Product" fetch="select" lazy="false">
+			<column name="id_product" />
+		</many-to-one>
+		<property name="grains_yield" type="java.lang.Double">
+			<column name="grains_yield" />
+		</property>
+		<property name="global_yield" type="java.lang.Double">
+			<column name="global_yield" />
+		</property>
+		<property name="note_1" type="java.lang.String">
+			<column name="note_1" />
+		</property>
+		<property name="note_2" type="java.lang.String">
+			<column name="note_2" />
+		</property>
+		<property name="insert_date" type="java.util.Date">
+			<column name="insert_date" />
+		</property>
+		<property name="defects_1" type="java.lang.Double">
+			<column name="defects_1" />
+		</property>
+		<property name="defects_2" type="java.lang.Double">
+			<column name="defects_2" />
+		</property>
+		<property name="thousand_grains" type="java.lang.Double">
+			<column name="thousand_grains" />
+		</property>
+				<many-to-one name="year"
+			class="itsol.luna.core.beans.SowingYear">
+			<column name="id_year" />
+		</many-to-one>
+	</class>
+</hibernate-mapping>
