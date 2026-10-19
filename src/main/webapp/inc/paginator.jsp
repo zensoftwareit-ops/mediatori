@@ -12,6 +12,8 @@
 									<s:param name="page" value="%{#tpage}" />
 									<s:param name="s" value="%{s}" />
 									<s:param name="id_customer" value="%{id_customer}" />
+									<s:param name="pagato" value="%{pagato}" />
+									<s:param name="comune" value="%{comune}" />
 									<s:param name="date_from">
 										<s:date name="date_from" format="dd/MM/yyyy"/>
 									</s:param>
@@ -29,6 +31,8 @@
 									<s:param name="page" value="%{#tpage}" />
 									<s:param name="s" value="%{s}" />
 									<s:param name="id_customer" value="%{id_customer}" />
+									<s:param name="pagato" value="%{pagato}" />
+									<s:param name="comune" value="%{comune}" />
 									<s:param name="date_from">
 										<s:date name="date_from" format="dd/MM/yyyy"/>
 									</s:param>

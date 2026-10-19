@@ -3,12 +3,14 @@ package itsol.luna.core.actions;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.hibernate.Session;
+import org.hibernate.Query;
 
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
@@ -25,6 +27,7 @@ import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfWriter;
 
 import itsol.luna.core.beans.Analisi;
+import itsol.luna.core.beans.AnalisiComuneSummary;
 import itsol.luna.core.interfaces.MyActionInterface;
 import itsol.luna.core.support.ContextSupport;
 import itsol.luna.core.support.LogSupport;
@@ -116,35 +119,19 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 
 			if (SessionSupport.checkSession()) {
 
-				if (SessionSupport.checkSessionLevel("admin|super")) {
-
-				} else {
-					Long id_admin = (Long)SessionSupport.getAdmin().getId();
-
-					String q = "";
-					q += "SELECT a FROM Analisi a";
-					
-					if(getId_customer() != null) {
-						q += " INNER JOIN a.cliente c";
-					} 
-					
-					q += " WHERE a.id_admin = :id_admin";
-					
-					if(getId_customer() != null) {
-						q += " AND c.id = " + getId_customer();
-					} 
-					
-					if(getPagato() != null)
-					if(getPagato().equals("SI")) {
-						q += " AND a.pagato = 'SI'";
-					} else if(getPagato().equals("NO")) {
-						q += " AND a.pagato = 'NO'";
-					}
-					
-					q += " ORDER BY id DESC";
-					
-						this.analisi = (List<Analisi>) sx.createQuery(q).setParameter("id_admin", id_admin).list();
-				}
+				String q = "SELECT a FROM Analisi a INNER JOIN a.cliente c WHERE 1 = 1";
+				boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
+				if(filtraAdmin) q += " AND a.id_admin = :id_admin";
+				if(getId_customer() != null) q += " AND c.id = :id_customer";
+				if(getComune() != null && !getComune().trim().isEmpty()) q += " AND c.legal_city = :comune";
+				if("SI".equals(getPagato()) || "NO".equals(getPagato())) q += " AND a.pagato = :pagato";
+				q += " ORDER BY a.id DESC";
+				Query query = sx.createQuery(q);
+				if(filtraAdmin) query.setParameter("id_admin", SessionSupport.getAdmin().getId());
+				if(getId_customer() != null) query.setParameter("id_customer", getId_customer());
+				if(getComune() != null && !getComune().trim().isEmpty()) query.setParameter("comune", getComune().trim());
+				if("SI".equals(getPagato()) || "NO".equals(getPagato())) query.setParameter("pagato", getPagato());
+				this.analisi = (List<Analisi>) query.list();
 
 				try {
 					Document document = new Document();
@@ -167,134 +154,68 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 
 					document.open();
 
-					Phrase ph;
-					// document.add(ph);
-
-					Iterator<Analisi> i = this.analisi.iterator();
-
 					Double tot = 0.00;
-					
-					while (i.hasNext()) {
-
-						Analisi a = i.next();
-						
-						PdfPTable table = new PdfPTable(
-								new float[] { 20,20,10,10,10,10,10,10 });
-						table.setWidthPercentage(100);
-						table.setSpacingAfter(15);
-
-						ph = selector.process("Campione");
-						table.addCell(ph);
-
-						ph = selector.process("Cliente");
-						table.addCell(ph);
-
-						ph = selector.process("Cadmio");
-						table.addCell(ph);
-
-						ph = selector.process("Arsenico tot");
-						table.addCell(ph);
-
-						ph = selector.process("Arsenico inorg.");
-						table.addCell(ph);
-
-						ph = selector.process("Nichel");
-						table.addCell(ph);
-
-						ph = selector.process("Costo");
-						table.addCell(ph);
-
-						ph = selector.process("Pagato");
-						table.addCell(ph);
-						
-
-						
-						ph = selector.process(a.getnCampione());
-						table.addCell(ph);
-						
-						ph = selector.process(a.getCliente().getBusiness_name());
-						table.addCell(ph);
-						
-						if("SI".equals(a.getCadmioFl()))
-							ph = selectorRed.process(a.getCadmio());
-						else
-							ph = selector.process(a.getCadmio());
-						
-						table.addCell(ph);
-						
-						ph = selector.process(a.getArsenicoTot());
-						table.addCell(ph);
-						
-						if("SI".equals(a.getArsenicoFl()))
-							ph = selectorRed.process(a.getArsenicoInorganico());
-						else
-							ph = selector.process(a.getArsenicoInorganico());
-							
-						table.addCell(ph);
-
-						if("SI".equals(a.getNichelFl()))
-							ph = selectorRed.process(a.getNichel() == null ? "" : a.getNichel());
-						else
-							ph = selector.process(a.getNichel() == null ? "" : a.getNichel());
-
-						table.addCell(ph);
-						
-						ph = selector.process(a.getCosto().toString());
-						table.addCell(ph);
-						
-						ph = selector.process(a.getPagato());
-						table.addCell(ph);
-						
-						document.add(table);
-						
-						///
-
-						if(a.getPagato().equals("NO"))
-							tot = tot+a.getCosto();
-
-					}
-
-					PdfPTable table = new PdfPTable(
-							new float[] { 20,20,10,10,10,10,10 });
+					PdfPTable table = new PdfPTable(new float[] { 16,18,13,8,8,9,8,8,7,10 });
 					table.setWidthPercentage(100);
-					table.setSpacingAfter(15);
-					
-					ph = selector.process("");
-					table.addCell(ph);
-
-					ph = selector.process("");
-					table.addCell(ph);
-
-					ph = selector.process("");
-					table.addCell(ph);
-
-					ph = selector.process("");
-					table.addCell(ph);
-
-					ph = selector.process("TOT. DA PAGARE");
-					table.addCell(ph);
-
-					ph = selector.process(tot.toString());
-					table.addCell(ph);
-
-					ph = selector.process("");
-					table.addCell(ph);
-					
+					table.setSpacingAfter(12);
+					String[] intestazioni = { "Campione", "Cliente", "Comune", "Cadmio", "Arsenico tot", "Arsenico inorg.", "Nichel", "Costo", "Pagato", "Esito" };
+					for(String intestazione : intestazioni) table.addCell(selector.process(intestazione));
+					for(Analisi a : this.analisi) {
+						table.addCell(selector.process(valore(a.getnCampione())));
+						table.addCell(selector.process(a.getCliente() == null ? "" : valore(a.getCliente().getBusiness_name())));
+						table.addCell(selector.process(a.getCliente() == null ? "" : valore(a.getCliente().getLegal_city())));
+						table.addCell(a.isCadmioFuoriLimite() ? selectorRed.process(valore(a.getCadmio())) : selector.process(valore(a.getCadmio())));
+						table.addCell(selector.process(valore(a.getArsenicoTot())));
+						table.addCell(a.isArsenicoFuoriLimite() ? selectorRed.process(valore(a.getArsenicoInorganico())) : selector.process(valore(a.getArsenicoInorganico())));
+						table.addCell(a.isNichelFuoriLimite() ? selectorRed.process(valore(a.getNichel())) : selector.process(valore(a.getNichel())));
+						table.addCell(selector.process(valore(a.getCosto())));
+						table.addCell(selector.process(valore(a.getPagato())));
+						PdfPCell esito = new PdfPCell(new Phrase(a.getEsito(), FontFactory.getFont(FontFactory.HELVETICA_BOLD, 7, a.isNonValida() ? BaseColor.WHITE : BaseColor.BLACK)));
+						if(a.isNonValida()) esito.setBackgroundColor(BaseColor.RED);
+						table.addCell(esito);
+						if("NO".equals(a.getPagato()) && a.getCosto() != null) tot += a.getCosto();
+					}
 					document.add(table);
+
+					PdfPTable totale = new PdfPTable(new float[] { 80,20 });
+					totale.setWidthPercentage(100);
+					totale.setSpacingAfter(15);
+					totale.addCell(selector.process("TOT. DA PAGARE"));
+					totale.addCell(selector.process(tot.toString()));
+					document.add(totale);
+
+					Map<String, AnalisiComuneSummary> riepilogo = creaRiepilogoComuni();
+					if(!riepilogo.isEmpty()) {
+						document.add(new Phrase("Riepilogo per comune", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10)));
+						PdfPTable comuni = new PdfPTable(new float[] { 22,10,17,17,17,17 });
+						comuni.setWidthPercentage(100);
+						comuni.setSpacingBefore(6);
+						String[] titoli = { "Comune", "Analisi", "Non valide", "Cadmio fuori limite", "Arsenico fuori limite", "Nichel fuori limite" };
+						for(String t : titoli) comuni.addCell(selector.process(t));
+						for(AnalisiComuneSummary r : riepilogo.values()) {
+							comuni.addCell(selector.process(r.getComune()));
+							comuni.addCell(selector.process(String.valueOf(r.getTotale())));
+							comuni.addCell(selector.process(r.getNonValide() + " (" + r.getPercentualeNonValide() + ")"));
+							comuni.addCell(selector.process(r.getCadmioFuoriLimite() + " (" + r.getPercentualeCadmio() + ")"));
+							comuni.addCell(selector.process(r.getArsenicoFuoriLimite() + " (" + r.getPercentualeArsenico() + ")"));
+							comuni.addCell(selector.process(r.getNichelFuoriLimite() + " (" + r.getPercentualeNichel() + ")"));
+						}
+						document.add(comuni);
+					}
 
 					document.close();
 
 					// ------------------------------ genero il pdf
 					ContextSupport.getResponse().setContentType("application/pdf");
 					ContextSupport.getResponse().addHeader("Content-Disposition",
-							"attachment; filename=" + "Provvigioni.pdf");
+							"attachment; filename=" + "Analisi.pdf");
 					ContextSupport.getResponse().setContentLength(output.size());
 					OutputStream os = ContextSupport.getResponse().getOutputStream();
 					output.writeTo(os);
 					os.flush();
 					os.close();
 
-					LogSupport.log(op() + "E' stato generato il pdf provvigioni.", Level.INFO);
+					LogSupport.log(op() + "E' stato generato il pdf analisi.", Level.INFO);
 
 				} catch (Exception ex) {
 					if (ContextSupport.isDebug()) {
@@ -321,6 +242,26 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 		}
 
 		return null;
+	}
+
+	private String valore(Object value) {
+		return value == null ? "" : value.toString();
+	}
+
+	private Map<String, AnalisiComuneSummary> creaRiepilogoComuni() {
+		Map<String, AnalisiComuneSummary> riepilogo = new TreeMap<String, AnalisiComuneSummary>(String.CASE_INSENSITIVE_ORDER);
+		for(Analisi a : this.analisi) {
+			String comune = a.getCliente() == null ? null : a.getCliente().getLegal_city();
+			if(comune == null || comune.trim().isEmpty()) comune = "Comune non indicato";
+			comune = comune.trim();
+			AnalisiComuneSummary r = riepilogo.get(comune);
+			if(r == null) {
+				r = new AnalisiComuneSummary(comune);
+				riepilogo.put(comune, r);
+			}
+			r.add(a);
+		}
+		return riepilogo;
 	}
 
 }

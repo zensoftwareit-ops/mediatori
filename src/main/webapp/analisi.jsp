@@ -24,6 +24,10 @@
 								<div class="form-group mr-1">
 									<s:select key="pagato" list="#{'all':'Tutti','SI':'Pagato','NO':'Non pagato'}" cssClass="from-control form-control-sm" />
 								</div>
+								<div class="form-group mr-1">
+									<s:select name="comune" list="comuni" headerKey="" headerValue="Tutti i comuni"
+										cssClass="form-control form-control-sm" />
+								</div>
 								<button type="submit" class="btn btn-primary btn-sm mr-1">
 									<i class="fas fa-search"></i>
 								</button>
@@ -41,6 +45,9 @@
 								aria-controls="card-1">
 								<s:action name="analisi/list" var="action">
 									<s:param name="s" value="null" />
+									<s:param name="id_customer" value="%{id_customer}" />
+									<s:param name="pagato" value="%{pagato}" />
+									<s:param name="comune" value="%{comune}" />
 								</s:action>
 								Tutti i dati -
 								<s:property value="#action.analisi.size()" />
@@ -52,6 +59,9 @@
 								<div class="card-body">
 									<s:action name="analisi/list" executeResult="true">
 										<s:param name="s" value="null" />
+										<s:param name="id_customer" value="%{id_customer}" />
+										<s:param name="pagato" value="%{pagato}" />
+										<s:param name="comune" value="%{comune}" />
 									</s:action>
 								</div>
 							</div>
@@ -62,6 +72,9 @@
 								<div class="card-body">
 									<s:action name="analisi/list" executeResult="true">
 										<s:param name="s" value="null" />
+										<s:param name="id_customer" value="%{id_customer}" />
+										<s:param name="pagato" value="%{pagato}" />
+										<s:param name="comune" value="%{comune}" />
 									</s:action>
 								</div>
 							</div>
@@ -76,6 +89,9 @@
 								aria-controls="card-2">
 								<s:action name="analisi/list" var="action">
 									<s:param name="s" value="%{s}" />
+									<s:param name="id_customer" value="%{id_customer}" />
+									<s:param name="pagato" value="%{pagato}" />
+									<s:param name="comune" value="%{comune}" />
 								</s:action>
 								Ricerca -
 								<s:property value="#action.analisi.size()" />
@@ -85,8 +101,11 @@
 							<div id="card-2" class="collapse" aria-labelledby="h-card-2"
 								data-parent="#accordion_products">
 								<div class="card-body">
-									<s:action name="products/list" executeResult="true">
+									<s:action name="analisi/list" executeResult="true">
 										<s:param name="s" value="%{s}" />
+										<s:param name="id_customer" value="%{id_customer}" />
+										<s:param name="pagato" value="%{pagato}" />
+										<s:param name="comune" value="%{comune}" />
 									</s:action>
 								</div>
 							</div>
@@ -97,6 +116,9 @@
 								<div class="card-body">
 									<s:action name="analisi/list" executeResult="true">
 										<s:param name="s" value="%{s}" />
+										<s:param name="id_customer" value="%{id_customer}" />
+										<s:param name="pagato" value="%{pagato}" />
+										<s:param name="comune" value="%{comune}" />
 									</s:action>
 								</div>
 							</div>

@@ -1,6 +1,7 @@
 package itsol.luna.core.beans;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 public class Analisi implements Serializable {
 
@@ -51,6 +52,33 @@ public class Analisi implements Serializable {
 	}
 	public void setNichelFl(String nichelFl) {
 		this.nichelFl = nichelFl;
+	}
+	public boolean isNonValida() {
+		return isCadmioFuoriLimite() || isArsenicoFuoriLimite() || isNichelFuoriLimite();
+	}
+	public String getEsito() {
+		return isNonValida() ? "NON VALIDA" : "VALIDA";
+	}
+	public boolean isCadmioFuoriLimite() {
+		return "SI".equalsIgnoreCase(cadmioFl) || superaLimite(cadmio, new BigDecimal("0.15"));
+	}
+	public boolean isArsenicoFuoriLimite() {
+		return "SI".equalsIgnoreCase(arsenicoFl) || superaLimite(arsenicoInorganico, new BigDecimal("0.15"));
+	}
+	public boolean isNichelFuoriLimite() {
+		return "SI".equalsIgnoreCase(nichelFl) || superaLimite(nichel, new BigDecimal("1.5"));
+	}
+	private boolean superaLimite(String valore, BigDecimal limite) {
+		if(valore == null) return false;
+		String normalizzato = valore.trim().replace(',', '.');
+		boolean maggioreDi = normalizzato.startsWith(">");
+		normalizzato = normalizzato.replaceFirst("^[<>]=?\\s*", "");
+		try {
+			int confronto = new BigDecimal(normalizzato).compareTo(limite);
+			return confronto > 0 || (maggioreDi && confronto == 0);
+		} catch(NumberFormatException ex) {
+			return false;
+		}
 	}
 	public String getPagato() {
 		return pagato;

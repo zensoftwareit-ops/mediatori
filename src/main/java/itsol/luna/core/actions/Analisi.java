@@ -1,9 +1,11 @@
 package itsol.luna.core.actions;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.hibernate.Session;
 
 import itsol.luna.core.beans.Customer;
 import itsol.luna.core.interfaces.MyActionInterface;
@@ -11,6 +13,7 @@ import itsol.luna.core.support.ContextSupport;
 import itsol.luna.core.support.LogSupport;
 import itsol.luna.core.support.MyActionSupport;
 import itsol.luna.core.support.SessionSupport;
+import itsol.luna.core.utils.HibernateUtil;
 
 public class Analisi extends MyActionSupport implements MyActionInterface {
 
@@ -51,6 +54,30 @@ public String execute() {
 
 public List<Customer> getCustomers() {
 	return SessionSupport.getCustomers();
+}
+
+@SuppressWarnings("unchecked")
+public List<String> getComuni() {
+	List<String> comuni = new ArrayList<String>(0);
+	Session sx = HibernateUtil.getSessionFactory().openSession();
+	try {
+		String q = "SELECT DISTINCT c.legal_city FROM Analisi a INNER JOIN a.cliente c "
+				+ "WHERE c.legal_city IS NOT NULL AND TRIM(c.legal_city) <> ''";
+		if(!SessionSupport.checkSessionLevel("admin|super")) {
+			q += " AND a.id_admin = :id_admin";
+		}
+		q += " ORDER BY c.legal_city";
+		org.hibernate.Query query = sx.createQuery(q);
+		if(!SessionSupport.checkSessionLevel("admin|super")) {
+			query.setParameter("id_admin", SessionSupport.getAdmin().getId());
+		}
+		comuni = (List<String>) query.list();
+	} catch(Exception ex) {
+		LogSupport.log(op() + "Errore durante il caricamento dei comuni: " + ExceptionUtils.getMessage(ex), Level.SEVERE);
+	} finally {
+		sx.close();
+	}
+	return comuni;
 }
 
 }

@@ -218,4 +218,13 @@ public class MyActionSupport extends ActionSupport {
 		this.pagato = pagato;
 	}
 
+	//------------------------------ comune della sede legale del cliente
+	private String comune;
+	public String getComune() {
+		return comune;
+	}
+	public void setComune(String comune) {
+		this.comune = comune;
+	}
+
 }

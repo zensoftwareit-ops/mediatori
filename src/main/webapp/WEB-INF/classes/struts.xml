@@ -327,6 +327,25 @@
 			<result name="input">/form_analisi.jsp</result>
 		</action>
 
+		<action name="analisi/delete/*"
+			class="itsol.luna.core.actions.AnalisiDelete">
+			<param name="id_analisi">{1}</param>
+			<result name="success" type="redirectAction">
+				<param name="actionName">analisi</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="error" type="redirectAction">
+				<param name="actionName">analisi</param>
+				<param name="resp">${resp}</param>
+				<param name="resp_status">${resp_status}</param>
+			</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+			</result>
+			<result name="error_debug">/error.jsp</result>
+		</action>
+
 
 
 		<action name="sales" class="itsol.luna.core.actions.Sales">
