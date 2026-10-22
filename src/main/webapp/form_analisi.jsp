@@ -57,9 +57,9 @@
 													for="analisi.prodotto.id" value="* Prodotto"
 													 /></small>
 												 <div>
-													<s:select key="analisi.prodotto.id" list="products"
-								listValue="name" listKey="id" headerKey="" headerValue="Seleziona prodotto"
-								cssClass="form-control form-control-sm" /></div>
+											<sj:autocompleter key="analisi.prodotto.id" list="products"
+												listValue="name" listKey="id" placeholder="Prodotto" />
+										 </div>
 																					<div>
 										<s:fielderror fieldName="analisi.prodotto.id" />
 											</div>

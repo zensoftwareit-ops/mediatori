@@ -18,8 +18,8 @@
 									listValue="business_name" listKey="id" placeholder="Cliente" />
 							</div>
 							<div class="form-group mr-1 mb-2">
-								<s:select name="id_product" list="products" listValue="name" listKey="id"
-									headerKey="" headerValue="Tutti i risi" cssClass="form-control form-control-sm" />
+								<sj:autocompleter key="id_product" list="products"
+									listValue="name" listKey="id" placeholder="Riso" />
 							</div>
 							<div class="form-group mr-1 mb-2">
 								<s:select name="comune" list="comuni" headerKey="" headerValue="Tutti i comuni"

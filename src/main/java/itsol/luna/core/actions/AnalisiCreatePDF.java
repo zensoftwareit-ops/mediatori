@@ -230,7 +230,7 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 		if(getDate_from() != null) q += " AND a.dataAnalisi >= :date_from";
 		if(getDate_to() != null) q += " AND a.dataAnalisi <= :date_to";
 		q += clausolaFuoriLimite();
-		q += " ORDER BY a.dataAnalisi DESC, a.id DESC";
+		q += " ORDER BY UPPER(c.business_name) ASC, a.dataAnalisi ASC, a.id ASC";
 		Query query = sx.createQuery(q);
 		query.setParameter("id_sowing_year", SessionSupport.getSowingYear().getId());
 		if(filtraAdmin) query.setParameter("id_admin", SessionSupport.getAdmin().getId());
