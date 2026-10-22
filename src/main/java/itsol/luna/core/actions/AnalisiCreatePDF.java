@@ -115,6 +115,8 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 
 		Session sx = HibernateUtil.getSessionFactory().openSession();
 		title = "Elenco analisi";
+		if(getDate_from() != null) title += " dal " + new SimpleDateFormat("dd/MM/yyyy").format(getDate_from());
+		if(getDate_to() != null) title += " al " + new SimpleDateFormat("dd/MM/yyyy").format(getDate_to());
 
 
 		try {
@@ -265,6 +267,8 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 		if(getId_customer() != null) q += " AND c.id = :id_customer";
 		if(getId_product() != null) q += " AND a.prodotto.id = :id_product";
 		if(getComune() != null && !getComune().trim().isEmpty()) q += " AND c.legal_city = :comune";
+		if(getDate_from() != null) q += " AND a.dataAnalisi >= :date_from";
+		if(getDate_to() != null) q += " AND a.dataAnalisi <= :date_to";
 		if("SI".equals(getPagato()) || "NO".equals(getPagato())) q += " AND a.pagato = :pagato";
 		if(applicaFiltroFuoriLimite) q += clausolaFuoriLimite();
 		q += " ORDER BY a.dataAnalisi DESC, a.id DESC";
@@ -274,6 +278,8 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 		if(getId_customer() != null) query.setParameter("id_customer", getId_customer());
 		if(getId_product() != null) query.setParameter("id_product", getId_product());
 		if(getComune() != null && !getComune().trim().isEmpty()) query.setParameter("comune", getComune().trim());
+		if(getDate_from() != null) query.setParameter("date_from", getDate_from());
+		if(getDate_to() != null) query.setParameter("date_to", getDate_to());
 		if("SI".equals(getPagato()) || "NO".equals(getPagato())) query.setParameter("pagato", getPagato());
 		return (List<Analisi>) query.list();
 	}

@@ -34,6 +34,14 @@
 								<s:select key="pagato" list="#{'all':'Tutti i pagamenti','SI':'Pagato','NO':'Non pagato'}"
 									cssClass="form-control form-control-sm" />
 							</div>
+							<div class="form-group mr-1 mb-2">
+								<sj:datepicker key="date_from" displayFormat="d/m/y"
+									cssClass="form-control form-control-sm" placeholder="Dal..." />
+							</div>
+							<div class="form-group mr-1 mb-2">
+								<sj:datepicker key="date_to" displayFormat="d/m/y"
+									cssClass="form-control form-control-sm" placeholder="Al..." />
+							</div>
 							<button type="submit" class="btn btn-primary btn-sm mb-2" title="Cerca">
 								<i class="fas fa-search"></i>
 							</button>
@@ -51,6 +59,8 @@
 							<s:param name="pagato" value="%{pagato}" />
 							<s:param name="comune" value="%{comune}" />
 							<s:param name="fuori_limite" value="%{fuori_limite}" />
+							<s:param name="date_from" value="%{date_from}" />
+							<s:param name="date_to" value="%{date_to}" />
 						</s:action>
 					</div>
 				</div>

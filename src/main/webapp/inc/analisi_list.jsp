@@ -9,6 +9,8 @@
 								<s:hidden key="pagato" />
 								<s:hidden key="comune" />
 								<s:hidden key="fuori_limite" />
+								<s:hidden key="date_from" />
+								<s:hidden key="date_to" />
 								<button type="submit" class="btn btn-primary btn-sm mr-1">
 									<i class="fas fa-print"></i> Stampa analisi
 								</button>
