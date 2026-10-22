@@ -1,6 +1,7 @@
 package itsol.luna.core.actions;
 
 import java.util.List;
+import java.util.Date;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -19,6 +20,7 @@ public class AnalisiNew extends MyActionSupport implements MyActionInterface {
 	 * 
 	 */
 	private static final long serialVersionUID = -7759405343859118899L;
+	private itsol.luna.core.beans.Analisi analisi;
 	
 public String execute() {
 		
@@ -26,6 +28,8 @@ public String execute() {
 		
 		try {
 			if(SessionSupport.checkSession()) {
+				this.analisi = new itsol.luna.core.beans.Analisi();
+				this.analisi.setDataAnalisi(new Date());
 				result = SUCCESS;
 			} else {
 				result = SUCCESS_NOLOGIN;
@@ -47,6 +51,14 @@ public String execute() {
 		return result;
 		
 	}
+
+public itsol.luna.core.beans.Analisi getAnalisi() {
+	return analisi;
+}
+
+public void setAnalisi(itsol.luna.core.beans.Analisi analisi) {
+	this.analisi = analisi;
+}
 
 public List<Product> getProducts() {
 	return SessionSupport.getProducts();

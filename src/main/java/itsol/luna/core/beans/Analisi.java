@@ -2,6 +2,7 @@ package itsol.luna.core.beans;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 
 public class Analisi implements Serializable {
 
@@ -11,11 +12,25 @@ public class Analisi implements Serializable {
 	private static final long serialVersionUID = -4124834374815654098L;
 	private Long id;
 	private Long id_admin;
+	private Date dataAnalisi;
+	private SowingYear year;
 	public Long getId_admin() {
 		return id_admin;
 	}
 	public void setId_admin(Long id_admin) {
 		this.id_admin = id_admin;
+	}
+	public Date getDataAnalisi() {
+		return dataAnalisi;
+	}
+	public void setDataAnalisi(Date dataAnalisi) {
+		this.dataAnalisi = dataAnalisi;
+	}
+	public SowingYear getYear() {
+		return year;
+	}
+	public void setYear(SowingYear year) {
+		this.year = year;
 	}
 	private String nCampione;
 	private Product prodotto;

@@ -2,6 +2,7 @@ package itsol.luna.core.actions;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,7 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 	private static final long serialVersionUID = 9033118516423577917L;
 
 	private List<Analisi> analisi = new ArrayList<Analisi>(0);
+	private List<Analisi> analisiRiepilogo = new ArrayList<Analisi>(0);
 
 	public List<Analisi> getAnalisi() {
 		return analisi;
@@ -119,19 +121,8 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 
 			if (SessionSupport.checkSession()) {
 
-				String q = "SELECT a FROM Analisi a INNER JOIN a.cliente c WHERE 1 = 1";
-				boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
-				if(filtraAdmin) q += " AND a.id_admin = :id_admin";
-				if(getId_customer() != null) q += " AND c.id = :id_customer";
-				if(getComune() != null && !getComune().trim().isEmpty()) q += " AND c.legal_city = :comune";
-				if("SI".equals(getPagato()) || "NO".equals(getPagato())) q += " AND a.pagato = :pagato";
-				q += " ORDER BY a.id DESC";
-				Query query = sx.createQuery(q);
-				if(filtraAdmin) query.setParameter("id_admin", SessionSupport.getAdmin().getId());
-				if(getId_customer() != null) query.setParameter("id_customer", getId_customer());
-				if(getComune() != null && !getComune().trim().isEmpty()) query.setParameter("comune", getComune().trim());
-				if("SI".equals(getPagato()) || "NO".equals(getPagato())) query.setParameter("pagato", getPagato());
-				this.analisi = (List<Analisi>) query.list();
+				this.analisiRiepilogo = eseguiQuery(sx, false);
+				this.analisi = eseguiQuery(sx, true);
 
 				try {
 					Document document = new Document();
@@ -155,14 +146,16 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 					document.open();
 
 					Double tot = 0.00;
-					PdfPTable table = new PdfPTable(new float[] { 16,18,13,8,8,9,8,8,7,10 });
+					PdfPTable table = new PdfPTable(new float[] { 8,13,15,14,11,7,7,8,7,7,6,9 });
 					table.setWidthPercentage(100);
 					table.setSpacingAfter(12);
-					String[] intestazioni = { "Campione", "Cliente", "Comune", "Cadmio", "Arsenico tot", "Arsenico inorg.", "Nichel", "Costo", "Pagato", "Esito" };
+					String[] intestazioni = { "Data", "Campione", "Cliente", "Riso", "Comune", "Cadmio", "Arsenico tot", "Arsenico inorg.", "Nichel", "Costo", "Pagato", "Esito" };
 					for(String intestazione : intestazioni) table.addCell(selector.process(intestazione));
 					for(Analisi a : this.analisi) {
+						table.addCell(selector.process(a.getDataAnalisi() == null ? "" : new SimpleDateFormat("dd/MM/yyyy").format(a.getDataAnalisi())));
 						table.addCell(selector.process(valore(a.getnCampione())));
 						table.addCell(selector.process(a.getCliente() == null ? "" : valore(a.getCliente().getBusiness_name())));
+						table.addCell(selector.process(a.getProdotto() == null ? "" : valore(a.getProdotto().getName())));
 						table.addCell(selector.process(a.getCliente() == null ? "" : valore(a.getCliente().getLegal_city())));
 						table.addCell(a.isCadmioFuoriLimite() ? selectorRed.process(valore(a.getCadmio())) : selector.process(valore(a.getCadmio())));
 						table.addCell(selector.process(valore(a.getArsenicoTot())));
@@ -250,7 +243,7 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 
 	private Map<String, AnalisiComuneSummary> creaRiepilogoComuni() {
 		Map<String, AnalisiComuneSummary> riepilogo = new TreeMap<String, AnalisiComuneSummary>(String.CASE_INSENSITIVE_ORDER);
-		for(Analisi a : this.analisi) {
+		for(Analisi a : this.analisiRiepilogo) {
 			String comune = a.getCliente() == null ? null : a.getCliente().getLegal_city();
 			if(comune == null || comune.trim().isEmpty()) comune = "Comune non indicato";
 			comune = comune.trim();
@@ -262,6 +255,37 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 			r.add(a);
 		}
 		return riepilogo;
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<Analisi> eseguiQuery(Session sx, boolean applicaFiltroFuoriLimite) {
+		String q = "SELECT a FROM Analisi a INNER JOIN a.cliente c WHERE a.year.id = :id_sowing_year";
+		boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
+		if(filtraAdmin) q += " AND a.id_admin = :id_admin";
+		if(getId_customer() != null) q += " AND c.id = :id_customer";
+		if(getId_product() != null) q += " AND a.prodotto.id = :id_product";
+		if(getComune() != null && !getComune().trim().isEmpty()) q += " AND c.legal_city = :comune";
+		if("SI".equals(getPagato()) || "NO".equals(getPagato())) q += " AND a.pagato = :pagato";
+		if(applicaFiltroFuoriLimite) q += clausolaFuoriLimite();
+		q += " ORDER BY a.dataAnalisi DESC, a.id DESC";
+		Query query = sx.createQuery(q);
+		query.setParameter("id_sowing_year", SessionSupport.getSowingYear().getId());
+		if(filtraAdmin) query.setParameter("id_admin", SessionSupport.getAdmin().getId());
+		if(getId_customer() != null) query.setParameter("id_customer", getId_customer());
+		if(getId_product() != null) query.setParameter("id_product", getId_product());
+		if(getComune() != null && !getComune().trim().isEmpty()) query.setParameter("comune", getComune().trim());
+		if("SI".equals(getPagato()) || "NO".equals(getPagato())) query.setParameter("pagato", getPagato());
+		return (List<Analisi>) query.list();
+	}
+
+	private String clausolaFuoriLimite() {
+		if(getFuori_limite() == null) return "";
+		String filtro = getFuori_limite().trim().toUpperCase();
+		if("TOTALE".equals(filtro)) return " AND (UPPER(a.cadmioFl) = 'SI' OR UPPER(a.arsenicoFl) = 'SI' OR UPPER(a.nichelFl) = 'SI')";
+		if("CADMIO".equals(filtro)) return " AND UPPER(a.cadmioFl) = 'SI'";
+		if("ARSENICO".equals(filtro)) return " AND UPPER(a.arsenicoFl) = 'SI'";
+		if("NICHEL".equals(filtro)) return " AND UPPER(a.nichelFl) = 'SI'";
+		return "";
 	}
 
 }

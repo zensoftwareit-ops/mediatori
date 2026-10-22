@@ -174,6 +174,24 @@ public class MyActionSupport extends ActionSupport {
 		this.id_customer = id_customer;
 	}
 
+	//------------------------------ variabile id_product
+	private Long id_product;
+	public Long getId_product() {
+		return id_product;
+	}
+	public void setId_product(Long id_product) {
+		this.id_product = id_product;
+	}
+
+	//------------------------------ filtro esito analisi
+	private String fuori_limite;
+	public String getFuori_limite() {
+		return fuori_limite;
+	}
+	public void setFuori_limite(String fuori_limite) {
+		this.fuori_limite = fuori_limite;
+	}
+
 	//------------------------------ variabile date_from
 	private Date date_from;
 	public Date getDate_from() {

@@ -9,6 +9,12 @@
         <property generated="never" lazy="false" name="id_admin" optimistic-lock="true" type="java.lang.Long" unique="false">
             <column name="IDADMIN"/>
         </property>
+		<property generated="never" lazy="false" name="dataAnalisi" optimistic-lock="true" type="java.util.Date" unique="false">
+			<column name="DATA_ANALISI"/>
+		</property>
+		<many-to-one name="year" class="itsol.luna.core.beans.SowingYear" fetch="select" lazy="false">
+			<column name="ID_SOWING_YEAR"/>
+		</many-to-one>
         <property access="field" generated="never" lazy="false" name="nCampione" optimistic-lock="true" type="java.lang.String" unique="false">
             <column name="NCAMPIONE"/>
         </property>

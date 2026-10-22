@@ -51,21 +51,11 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 			
 			if(SessionSupport.checkSession()) {
 				
-				String q = "SELECT a FROM Analisi a INNER JOIN a.cliente c WHERE 1 = 1";
-				boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
-				if(filtraAdmin) q += " AND a.id_admin = :id_admin";
-				if(getId_customer() != null) q += " AND c.id = :id_customer";
-				if(getComune() != null && !getComune().trim().isEmpty()) q += " AND c.legal_city = :comune";
-				if("SI".equals(getPagato()) || "NO".equals(getPagato())) q += " AND a.pagato = :pagato";
-				q += " ORDER BY a.id DESC";
-
-				Query query = sx.createQuery(q);
-				if(filtraAdmin) query.setParameter("id_admin", SessionSupport.getAdmin().getId());
-				if(getId_customer() != null) query.setParameter("id_customer", getId_customer());
-				if(getComune() != null && !getComune().trim().isEmpty()) query.setParameter("comune", getComune().trim());
-				if("SI".equals(getPagato()) || "NO".equals(getPagato())) query.setParameter("pagato", getPagato());
-				this.analisi = (List<Analisi>) query.list();
-				creaRiepilogoComuni();
+				// Il riepilogo usa la popolazione completa dei filtri anagrafici, così le
+				// percentuali restano significative anche quando si visualizzano solo i fuori limite.
+				List<Analisi> baseRiepilogo = eseguiQuery(sx, false);
+				this.analisi = eseguiQuery(sx, true);
+				creaRiepilogoComuni(baseRiepilogo);
 				
 				createPagination(this.analisi.size());
 
@@ -89,9 +79,41 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 		return result;
 	}
 
-	private void creaRiepilogoComuni() {
+	@SuppressWarnings("unchecked")
+	private List<Analisi> eseguiQuery(Session sx, boolean applicaFiltroFuoriLimite) {
+		String q = "SELECT a FROM Analisi a INNER JOIN a.cliente c WHERE a.year.id = :id_sowing_year";
+		boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
+		if(filtraAdmin) q += " AND a.id_admin = :id_admin";
+		if(getId_customer() != null) q += " AND c.id = :id_customer";
+		if(getId_product() != null) q += " AND a.prodotto.id = :id_product";
+		if(getComune() != null && !getComune().trim().isEmpty()) q += " AND c.legal_city = :comune";
+		if("SI".equals(getPagato()) || "NO".equals(getPagato())) q += " AND a.pagato = :pagato";
+		if(applicaFiltroFuoriLimite) q += clausolaFuoriLimite();
+		q += " ORDER BY a.dataAnalisi DESC, a.id DESC";
+
+		Query query = sx.createQuery(q);
+		query.setParameter("id_sowing_year", SessionSupport.getSowingYear().getId());
+		if(filtraAdmin) query.setParameter("id_admin", SessionSupport.getAdmin().getId());
+		if(getId_customer() != null) query.setParameter("id_customer", getId_customer());
+		if(getId_product() != null) query.setParameter("id_product", getId_product());
+		if(getComune() != null && !getComune().trim().isEmpty()) query.setParameter("comune", getComune().trim());
+		if("SI".equals(getPagato()) || "NO".equals(getPagato())) query.setParameter("pagato", getPagato());
+		return (List<Analisi>) query.list();
+	}
+
+	private String clausolaFuoriLimite() {
+		if(getFuori_limite() == null) return "";
+		String filtro = getFuori_limite().trim().toUpperCase();
+		if("TOTALE".equals(filtro)) return " AND (UPPER(a.cadmioFl) = 'SI' OR UPPER(a.arsenicoFl) = 'SI' OR UPPER(a.nichelFl) = 'SI')";
+		if("CADMIO".equals(filtro)) return " AND UPPER(a.cadmioFl) = 'SI'";
+		if("ARSENICO".equals(filtro)) return " AND UPPER(a.arsenicoFl) = 'SI'";
+		if("NICHEL".equals(filtro)) return " AND UPPER(a.nichelFl) = 'SI'";
+		return "";
+	}
+
+	private void creaRiepilogoComuni(List<Analisi> dati) {
 		Map<String, AnalisiComuneSummary> riepilogo = new LinkedHashMap<String, AnalisiComuneSummary>();
-		for(Analisi a : this.analisi) {
+		for(Analisi a : dati) {
 			String comune = a.getCliente() == null ? null : a.getCliente().getLegal_city();
 			if(comune == null || comune.trim().isEmpty()) comune = "Comune non indicato";
 			comune = comune.trim();

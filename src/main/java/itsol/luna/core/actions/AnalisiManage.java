@@ -33,9 +33,15 @@ public String execute() {
 		try {
 			if(SessionSupport.checkSession()) {
 
-				this.analisi = (itsol.luna.core.beans.Analisi) sx.createQuery("FROM Analisi WHERE id = :id_analisi")
+				String hql = "FROM Analisi WHERE id = :id_analisi AND year.id = :id_sowing_year";
+				boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
+				if(filtraAdmin) hql += " AND id_admin = :id_admin";
+				org.hibernate.Query query = sx.createQuery(hql)
 						.setParameter("id_analisi", getId_analisi())
-						.uniqueResult();
+						.setParameter("id_sowing_year", SessionSupport.getSowingYear().getId());
+				if(filtraAdmin) query.setParameter("id_admin", SessionSupport.getAdmin().getId());
+				this.analisi = (itsol.luna.core.beans.Analisi) query.uniqueResult();
+				if(this.analisi == null) throw new IllegalArgumentException("Analisi non trovata nell'annata selezionata.");
 				
 				result = SUCCESS;
 			} else {

@@ -5,8 +5,10 @@
 						<li class="nav-item mr-3"><s:form cssClass="form-inline mb-2"
 								method="post" action="analisi/print" theme="simple" id="form-comm-buyer">
 								<s:hidden key="id_customer" />
+								<s:hidden key="id_product" />
 								<s:hidden key="pagato" />
 								<s:hidden key="comune" />
+								<s:hidden key="fuori_limite" />
 								<button type="submit" class="btn btn-primary btn-sm mr-1">
 									<i class="fas fa-print"></i> Stampa analisi
 								</button>
@@ -17,8 +19,10 @@
 	<table class="table table-sm table-hover">
 		<thead>
 			<tr>
+				<th scope="col">Data</th>
 				<th scope="col">Campione</th>
 				<th scope="col">Cliente</th>
+				<th scope="col">Riso</th>
 				<th scope="col">Comune</th>
 				<th scope="col">Cadmio</th>
 				<th scope="col">Arsenico tot</th>
@@ -34,8 +38,10 @@
 			<s:iterator value="%{analisi}" begin="%{begin}" end="%{end}">
 				<s:if test="%{nonValida}"><tr class="table-danger"></s:if>
 				<s:else><tr></s:else>
+					<td><s:date name="dataAnalisi" format="dd/MM/yyyy" /></td>
 					<th scope="row"><s:property value="%{nCampione}" /></th>
 					<td><s:property value="%{cliente.business_name}" /></td>
+					<td><s:property value="%{prodotto.name}" /></td>
 					<td><s:property value="%{cliente.legal_city}" /></td>
 					<td>
 					<s:if test="%{cadmioFuoriLimite}">
@@ -109,9 +115,12 @@
 							<s:else><td></s:else>
 								<s:property value="%{nonValide}" /> (<s:property value="%{percentualeNonValide}" />)
 							</td>
-							<td><s:property value="%{cadmioFuoriLimite}" /> (<s:property value="%{percentualeCadmio}" />)</td>
-							<td><s:property value="%{arsenicoFuoriLimite}" /> (<s:property value="%{percentualeArsenico}" />)</td>
-							<td><s:property value="%{nichelFuoriLimite}" /> (<s:property value="%{percentualeNichel}" />)</td>
+							<s:if test="%{cadmioFuoriLimite > 0}"><td class="text-danger font-weight-bold"></s:if><s:else><td></s:else>
+								<s:property value="%{cadmioFuoriLimite}" /> (<s:property value="%{percentualeCadmio}" />)</td>
+							<s:if test="%{arsenicoFuoriLimite > 0}"><td class="text-danger font-weight-bold"></s:if><s:else><td></s:else>
+								<s:property value="%{arsenicoFuoriLimite}" /> (<s:property value="%{percentualeArsenico}" />)</td>
+							<s:if test="%{nichelFuoriLimite > 0}"><td class="text-danger font-weight-bold"></s:if><s:else><td></s:else>
+								<s:property value="%{nichelFuoriLimite}" /> (<s:property value="%{percentualeNichel}" />)</td>
 						</tr>
 					</s:iterator>
 				</tbody>

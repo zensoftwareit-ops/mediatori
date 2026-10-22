@@ -25,10 +25,11 @@ public class AnalisiDelete extends MyActionSupport implements MyActionInterface 
 		if(!SessionSupport.checkSession()) return SUCCESS_NOLOGIN;
 		Session sx = HibernateUtil.getSessionFactory().openSession();
 		try {
-			String hql = "FROM Analisi WHERE id = :id_analisi";
+			String hql = "FROM Analisi WHERE id = :id_analisi AND year.id = :id_sowing_year";
 			boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
 			if(filtraAdmin) hql += " AND id_admin = :id_admin";
-			Query query = sx.createQuery(hql).setParameter("id_analisi", id_analisi);
+			Query query = sx.createQuery(hql).setParameter("id_analisi", id_analisi)
+					.setParameter("id_sowing_year", SessionSupport.getSowingYear().getId());
 			if(filtraAdmin) query.setParameter("id_admin", SessionSupport.getAdmin().getId());
 			itsol.luna.core.beans.Analisi analisi = (itsol.luna.core.beans.Analisi) query.uniqueResult();
 			if(analisi == null) {

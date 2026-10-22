@@ -22,7 +22,6 @@
 						</div>
 
 						<s:hidden name="analisi.id" />
-						<s:hidden name="analisi.id_admin" />
 
 						<div class="form-row">
 
@@ -33,7 +32,14 @@
 											</label></small>
 
 									<div class="form-row">
-										<div class="form-group col-6">
+										<div class="form-group col-4">
+											<small class="font-weight-bold"><s:label
+													for="analisi.dataAnalisi" value="* Data analisi" /></small>
+											<sj:datepicker key="analisi.dataAnalisi" displayFormat="d/m/y"
+												cssClass="form-control form-control-sm" />
+											<div><s:fielderror fieldName="analisi.dataAnalisi" /></div>
+										</div>
+										<div class="form-group col-4">
 											<small class="font-weight-bold"><s:label
 													for="analisi.cliente.id" value="* Cliente" /></small>
 																			<div>
@@ -46,15 +52,16 @@
 											</div>
 										</div>
 									
-										<div class="form-group col-6">
+										<div class="form-group col-4">
 											<small class="font-weight-bold"><s:label
 													for="analisi.prodotto.id" value="* Prodotto"
 													 /></small>
-													 <div>
-													<sj:autocompleter key="analisi.prodotto.id" list="products"
-										listValue="name" listKey="id" /></div>
+												 <div>
+													<s:select key="analisi.prodotto.id" list="products"
+								listValue="name" listKey="id" headerKey="" headerValue="Seleziona prodotto"
+								cssClass="form-control form-control-sm" /></div>
 																					<div>
-												<s:fielderror fieldName="analisi.cliente.id" />
+										<s:fielderror fieldName="analisi.prodotto.id" />
 											</div>
 										</div>
 									

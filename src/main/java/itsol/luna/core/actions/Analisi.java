@@ -8,6 +8,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.hibernate.Session;
 
 import itsol.luna.core.beans.Customer;
+import itsol.luna.core.beans.Product;
 import itsol.luna.core.interfaces.MyActionInterface;
 import itsol.luna.core.support.ContextSupport;
 import itsol.luna.core.support.LogSupport;
@@ -56,18 +57,23 @@ public List<Customer> getCustomers() {
 	return SessionSupport.getCustomers();
 }
 
+public List<Product> getProducts() {
+	return SessionSupport.getProducts();
+}
+
 @SuppressWarnings("unchecked")
 public List<String> getComuni() {
 	List<String> comuni = new ArrayList<String>(0);
 	Session sx = HibernateUtil.getSessionFactory().openSession();
 	try {
 		String q = "SELECT DISTINCT c.legal_city FROM Analisi a INNER JOIN a.cliente c "
-				+ "WHERE c.legal_city IS NOT NULL AND TRIM(c.legal_city) <> ''";
+				+ "WHERE c.legal_city IS NOT NULL AND TRIM(c.legal_city) <> '' AND a.year.id = :id_sowing_year";
 		if(!SessionSupport.checkSessionLevel("admin|super")) {
 			q += " AND a.id_admin = :id_admin";
 		}
 		q += " ORDER BY c.legal_city";
 		org.hibernate.Query query = sx.createQuery(q);
+		query.setParameter("id_sowing_year", SessionSupport.getSowingYear().getId());
 		if(!SessionSupport.checkSessionLevel("admin|super")) {
 			query.setParameter("id_admin", SessionSupport.getAdmin().getId());
 		}
