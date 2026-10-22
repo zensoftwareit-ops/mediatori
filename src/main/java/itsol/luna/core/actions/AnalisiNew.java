@@ -30,6 +30,7 @@ public String execute() {
 			if(SessionSupport.checkSession()) {
 				this.analisi = new itsol.luna.core.beans.Analisi();
 				this.analisi.setDataAnalisi(new Date());
+				this.analisi.setCosto(86.00);
 				result = SUCCESS;
 			} else {
 				result = SUCCESS_NOLOGIN;

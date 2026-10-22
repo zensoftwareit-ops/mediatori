@@ -167,6 +167,7 @@
 													for="analisi.costo" value="Costo"
 													/></small>
 											<s:textfield key="analisi.costo"
+												value="%{86.00}" readonly="true"
 												cssClass="form-control form-control-sm numeric"
 												placeholder="Costo" />
 										</div>

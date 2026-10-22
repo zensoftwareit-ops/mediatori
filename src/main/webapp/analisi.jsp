@@ -31,10 +31,6 @@
 									cssClass="form-control form-control-sm" />
 							</div>
 							<div class="form-group mr-1 mb-2">
-								<s:select key="pagato" list="#{'all':'Tutti i pagamenti','SI':'Pagato','NO':'Non pagato'}"
-									cssClass="form-control form-control-sm" />
-							</div>
-							<div class="form-group mr-1 mb-2">
 								<sj:datepicker key="date_from" displayFormat="d/m/y"
 									cssClass="form-control form-control-sm" placeholder="Dal..." />
 							</div>
@@ -56,7 +52,6 @@
 						<s:action name="analisi/list" executeResult="true">
 							<s:param name="id_customer" value="%{id_customer}" />
 							<s:param name="id_product" value="%{id_product}" />
-							<s:param name="pagato" value="%{pagato}" />
 							<s:param name="comune" value="%{comune}" />
 							<s:param name="fuori_limite" value="%{fuori_limite}" />
 							<s:param name="date_from" value="%{date_from}" />

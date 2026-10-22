@@ -28,6 +28,7 @@ public class AnalisiSave extends MyActionSupport implements MyActionInterface {
 	private static final BigDecimal LIMITE_CADMIO = new BigDecimal("0.15");
 	private static final BigDecimal LIMITE_ARSENICO = new BigDecimal("0.15");
 	private static final BigDecimal LIMITE_NICHEL = new BigDecimal("1.5");
+	private static final Double COSTO_ANALISI = 86.00;
 	
 	private itsol.luna.core.beans.Analisi analisi;
 
@@ -137,7 +138,8 @@ public String execute() {
 		destinazione.setNichel(origine.getNichel());
 		destinazione.setAltreAnalisi(origine.getAltreAnalisi());
 		destinazione.setNote(origine.getNote());
-		destinazione.setCosto(origine.getCosto());
+		// Il costo dell'analisi e' fisso e non deve dipendere dal valore inviato dal client.
+		destinazione.setCosto(COSTO_ANALISI);
 		destinazione.setPagato(origine.getPagato());
 	}
 	

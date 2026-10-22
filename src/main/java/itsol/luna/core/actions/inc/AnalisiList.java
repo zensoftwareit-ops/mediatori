@@ -1,9 +1,7 @@
 package itsol.luna.core.actions.inc;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -11,7 +9,6 @@ import org.hibernate.Session;
 import org.hibernate.Query;
 
 import itsol.luna.core.beans.Analisi;
-import itsol.luna.core.beans.AnalisiComuneSummary;
 import itsol.luna.core.interfaces.MyActionInterface;
 import itsol.luna.core.support.ContextSupport;
 import itsol.luna.core.support.LogSupport;
@@ -27,7 +24,6 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 	private static final long serialVersionUID = 8547937100675044360L;
 	
 	private List<Analisi> analisi = new ArrayList<Analisi>(0);
-	private List<AnalisiComuneSummary> riepilogoComuni = new ArrayList<AnalisiComuneSummary>(0);
 
 	public List<Analisi> getAnalisi() {
 		return analisi;
@@ -37,10 +33,6 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 		this.analisi = analisi;
 	}
 
-	public List<AnalisiComuneSummary> getRiepilogoComuni() {
-		return riepilogoComuni;
-	}
-	
 	@SuppressWarnings("unchecked")
 	public String execute() {
 		
@@ -51,11 +43,7 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 			
 			if(SessionSupport.checkSession()) {
 				
-				// Il riepilogo usa la popolazione completa dei filtri anagrafici, così le
-				// percentuali restano significative anche quando si visualizzano solo i fuori limite.
-				List<Analisi> baseRiepilogo = eseguiQuery(sx, false);
-				this.analisi = eseguiQuery(sx, true);
-				creaRiepilogoComuni(baseRiepilogo);
+				this.analisi = eseguiQuery(sx);
 				
 				createPagination(this.analisi.size());
 
@@ -80,7 +68,7 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 	}
 
 	@SuppressWarnings("unchecked")
-	private List<Analisi> eseguiQuery(Session sx, boolean applicaFiltroFuoriLimite) {
+	private List<Analisi> eseguiQuery(Session sx) {
 		String q = "SELECT a FROM Analisi a INNER JOIN a.cliente c WHERE a.year.id = :id_sowing_year";
 		boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
 		if(filtraAdmin) q += " AND a.id_admin = :id_admin";
@@ -89,8 +77,7 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 		if(getComune() != null && !getComune().trim().isEmpty()) q += " AND c.legal_city = :comune";
 		if(getDate_from() != null) q += " AND a.dataAnalisi >= :date_from";
 		if(getDate_to() != null) q += " AND a.dataAnalisi <= :date_to";
-		if("SI".equals(getPagato()) || "NO".equals(getPagato())) q += " AND a.pagato = :pagato";
-		if(applicaFiltroFuoriLimite) q += clausolaFuoriLimite();
+		q += clausolaFuoriLimite();
 		q += " ORDER BY a.dataAnalisi DESC, a.id DESC";
 
 		Query query = sx.createQuery(q);
@@ -101,7 +88,6 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 		if(getComune() != null && !getComune().trim().isEmpty()) query.setParameter("comune", getComune().trim());
 		if(getDate_from() != null) query.setParameter("date_from", getDate_from());
 		if(getDate_to() != null) query.setParameter("date_to", getDate_to());
-		if("SI".equals(getPagato()) || "NO".equals(getPagato())) query.setParameter("pagato", getPagato());
 		return (List<Analisi>) query.list();
 	}
 
@@ -113,22 +99,6 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 		if("ARSENICO".equals(filtro)) return " AND UPPER(a.arsenicoFl) = 'SI'";
 		if("NICHEL".equals(filtro)) return " AND UPPER(a.nichelFl) = 'SI'";
 		return "";
-	}
-
-	private void creaRiepilogoComuni(List<Analisi> dati) {
-		Map<String, AnalisiComuneSummary> riepilogo = new LinkedHashMap<String, AnalisiComuneSummary>();
-		for(Analisi a : dati) {
-			String comune = a.getCliente() == null ? null : a.getCliente().getLegal_city();
-			if(comune == null || comune.trim().isEmpty()) comune = "Comune non indicato";
-			comune = comune.trim();
-			AnalisiComuneSummary r = riepilogo.get(comune);
-			if(r == null) {
-				r = new AnalisiComuneSummary(comune);
-				riepilogo.put(comune, r);
-			}
-			r.add(a);
-		}
-		this.riepilogoComuni = new ArrayList<AnalisiComuneSummary>(riepilogo.values());
 	}
 
 }
