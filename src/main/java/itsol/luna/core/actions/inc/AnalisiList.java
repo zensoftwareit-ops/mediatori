@@ -24,6 +24,7 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 	private static final long serialVersionUID = 8547937100675044360L;
 	
 	private List<Analisi> analisi = new ArrayList<Analisi>(0);
+	private Long totaleAnnata = 0L;
 
 	public List<Analisi> getAnalisi() {
 		return analisi;
@@ -31,6 +32,10 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 
 	public void setAnalisi(List<Analisi> analisi) {
 		this.analisi = analisi;
+	}
+
+	public Long getTotaleAnnata() {
+		return totaleAnnata;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -43,6 +48,7 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 			
 			if(SessionSupport.checkSession()) {
 				
+				this.totaleAnnata = contaAnalisiAnnata(sx);
 				this.analisi = eseguiQuery(sx);
 				
 				createPagination(this.analisi.size());
@@ -65,6 +71,17 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 		}
 		
 		return result;
+	}
+
+	private Long contaAnalisiAnnata(Session sx) {
+		String hql = "SELECT COUNT(*) FROM Analisi a WHERE a.year.id = :id_sowing_year";
+		boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
+		if(filtraAdmin) hql += " AND a.id_admin = :id_admin";
+
+		Query query = sx.createQuery(hql)
+				.setParameter("id_sowing_year", SessionSupport.getSowingYear().getId());
+		if(filtraAdmin) query.setParameter("id_admin", SessionSupport.getAdmin().getId());
+		return (Long) query.uniqueResult();
 	}
 
 	@SuppressWarnings("unchecked")

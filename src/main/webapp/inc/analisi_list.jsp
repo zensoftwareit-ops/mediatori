@@ -1,5 +1,6 @@
 <%@ taglib prefix="s" uri="/struts-tags"%>
 
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
 <ul class="nav nav-pills">
 
 						<li class="nav-item mr-3"><s:form cssClass="form-inline mb-2"
@@ -15,6 +16,10 @@
 								</button>
 							</s:form></li>
 							</ul>
+	<div class="font-weight-bold text-primary">
+		Totale analisi annata selezionata: <s:property value="%{totaleAnnata}" />
+	</div>
+</div>
 
 <div class="table-responsive">
 	<table class="table table-sm table-hover">
