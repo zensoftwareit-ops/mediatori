@@ -21,9 +21,30 @@
 								<sj:autocompleter key="id_product" list="products"
 									listValue="name" listKey="id" placeholder="Riso" />
 							</div>
-							<div class="form-group mr-1 mb-2">
-								<s:select name="comuni_selezionati" list="comuni" multiple="true" size="3"
-									cssClass="form-control form-control-sm" title="Ctrl+clic per selezionare più comuni" />
+							<div class="form-group dropdown mr-1 mb-2" id="analisiComuniDropdown">
+								<button class="btn btn-light btn-sm border dropdown-toggle" type="button"
+									id="analisiComuniButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									<span id="analisiComuniButtonText">Tutti i comuni</span>
+								</button>
+								<div class="dropdown-menu p-2 analisi-comuni-menu" aria-labelledby="analisiComuniButton"
+									style="min-width: 260px;">
+									<input type="text" id="analisiComuniSearch" class="form-control form-control-sm mb-2"
+										placeholder="Cerca comune..." autocomplete="off" />
+									<div id="analisiComuniOptions" style="max-height: 240px; overflow-y: auto;">
+										<s:iterator value="comuni" var="comuneVoce">
+											<label class="form-check mb-1 analisi-comune-opzione">
+												<input class="form-check-input analisi-comune-checkbox" type="checkbox"
+													name="comuni_selezionati" value='<s:property value="%{#comuneVoce}" />'
+													<s:if test="%{comuniFiltro.contains(#comuneVoce)}">checked="checked"</s:if> />
+												<span class="analisi-comune-label"><s:property value="%{#comuneVoce}" /></span>
+											</label>
+										</s:iterator>
+									</div>
+									<div class="dropdown-divider"></div>
+									<button type="button" class="btn btn-link btn-sm p-0" id="analisiComuniClear">
+										Deseleziona tutti
+									</button>
+								</div>
 							</div>
 							<div class="form-group mr-1 mb-2">
 								<s:select name="fuori_limite"
@@ -64,5 +85,42 @@
 		</div>
 	</div>
 </div>
+
+<script>
+$(function() {
+	var $dropdown = $('#analisiComuniDropdown');
+	var $search = $('#analisiComuniSearch');
+	var $checkboxes = $('.analisi-comune-checkbox');
+
+	function aggiornaTestoComuni() {
+		var selezionati = $checkboxes.filter(':checked').length;
+		$('#analisiComuniButtonText').text(selezionati > 0 ? 'Comuni selezionati: ' + selezionati : 'Tutti i comuni');
+	}
+
+	$('.analisi-comuni-menu').on('click', function(event) {
+		event.stopPropagation();
+	});
+
+	$search.on('input', function() {
+		var ricerca = $(this).val().toLowerCase().trim();
+		$('.analisi-comune-opzione').each(function() {
+			var testo = $(this).find('.analisi-comune-label').text().toLowerCase();
+			$(this).toggle(testo.indexOf(ricerca) !== -1);
+		});
+	});
+
+	$checkboxes.on('change', aggiornaTestoComuni);
+	$('#analisiComuniClear').on('click', function() {
+		$checkboxes.prop('checked', false);
+		$search.val('').trigger('input');
+		aggiornaTestoComuni();
+	});
+	$dropdown.on('shown.bs.dropdown', function() {
+		$search.trigger('focus');
+	});
+
+	aggiornaTestoComuni();
+});
+</script>
 
 <%@include file="footer.jsp"%>
