@@ -22,8 +22,8 @@
 									listValue="name" listKey="id" placeholder="Riso" />
 							</div>
 							<div class="form-group mr-1 mb-2">
-								<s:select name="comune" list="comuni" headerKey="" headerValue="Tutti i comuni"
-									cssClass="form-control form-control-sm" />
+								<s:select name="comuni_selezionati" list="comuni" multiple="true" size="3"
+									cssClass="form-control form-control-sm" title="Ctrl+clic per selezionare più comuni" />
 							</div>
 							<div class="form-group mr-1 mb-2">
 								<s:select name="fuori_limite"
@@ -52,6 +52,7 @@
 						<s:action name="analisi/list" executeResult="true">
 							<s:param name="id_customer" value="%{id_customer}" />
 							<s:param name="id_product" value="%{id_product}" />
+							<s:param name="comuni_selezionati" value="%{comuni_selezionati}" />
 							<s:param name="comune" value="%{comune}" />
 							<s:param name="fuori_limite" value="%{fuori_limite}" />
 							<s:param name="date_from" value="%{date_from}" />

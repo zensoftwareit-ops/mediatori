@@ -12,8 +12,13 @@
 									<s:param name="page" value="%{#tpage}" />
 									<s:param name="s" value="%{s}" />
 									<s:param name="id_customer" value="%{id_customer}" />
+									<s:param name="id_product" value="%{id_product}" />
 									<s:param name="pagato" value="%{pagato}" />
 									<s:param name="comune" value="%{comune}" />
+									<s:iterator value="%{comuni_selezionati}" var="comuneSelezionato">
+										<s:param name="comuni_selezionati" value="%{#comuneSelezionato}" />
+									</s:iterator>
+									<s:param name="fuori_limite" value="%{fuori_limite}" />
 									<s:param name="date_from">
 										<s:date name="date_from" format="dd/MM/yyyy"/>
 									</s:param>
@@ -31,8 +36,13 @@
 									<s:param name="page" value="%{#tpage}" />
 									<s:param name="s" value="%{s}" />
 									<s:param name="id_customer" value="%{id_customer}" />
+									<s:param name="id_product" value="%{id_product}" />
 									<s:param name="pagato" value="%{pagato}" />
 									<s:param name="comune" value="%{comune}" />
+									<s:iterator value="%{comuni_selezionati}" var="comuneSelezionato">
+										<s:param name="comuni_selezionati" value="%{#comuneSelezionato}" />
+									</s:iterator>
+									<s:param name="fuori_limite" value="%{fuori_limite}" />
 									<s:param name="date_from">
 										<s:date name="date_from" format="dd/MM/yyyy"/>
 									</s:param>

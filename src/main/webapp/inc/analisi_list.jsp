@@ -8,6 +8,9 @@
 								<s:hidden key="id_customer" />
 								<s:hidden key="id_product" />
 								<s:hidden key="comune" />
+								<s:iterator value="%{comuni_selezionati}" var="comuneSelezionato">
+									<s:hidden name="comuni_selezionati" value="%{#comuneSelezionato}" />
+								</s:iterator>
 								<s:hidden key="fuori_limite" />
 								<s:hidden key="date_from" />
 								<s:hidden key="date_to" />

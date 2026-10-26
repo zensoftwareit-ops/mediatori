@@ -113,6 +113,7 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 		title = "Elenco analisi";
 		if(getDate_from() != null) title += " dal " + new SimpleDateFormat("dd/MM/yyyy").format(getDate_from());
 		if(getDate_to() != null) title += " al " + new SimpleDateFormat("dd/MM/yyyy").format(getDate_to());
+		if(!getComuniFiltro().isEmpty()) title += " - Comuni: " + String.join(", ", getComuniFiltro());
 
 
 		try {
@@ -221,12 +222,13 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 
 	@SuppressWarnings("unchecked")
 	private List<Analisi> eseguiQuery(Session sx) {
+		List<String> comuniFiltro = getComuniFiltro();
 		String q = "SELECT a FROM Analisi a INNER JOIN a.cliente c WHERE a.year.id = :id_sowing_year";
 		boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
 		if(filtraAdmin) q += " AND a.id_admin = :id_admin";
 		if(getId_customer() != null) q += " AND c.id = :id_customer";
 		if(getId_product() != null) q += " AND a.prodotto.id = :id_product";
-		if(getComune() != null && !getComune().trim().isEmpty()) q += " AND c.legal_city = :comune";
+		if(!comuniFiltro.isEmpty()) q += " AND c.legal_city IN (:comuni)";
 		if(getDate_from() != null) q += " AND a.dataAnalisi >= :date_from";
 		if(getDate_to() != null) q += " AND a.dataAnalisi <= :date_to";
 		q += clausolaFuoriLimite();
@@ -236,7 +238,7 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 		if(filtraAdmin) query.setParameter("id_admin", SessionSupport.getAdmin().getId());
 		if(getId_customer() != null) query.setParameter("id_customer", getId_customer());
 		if(getId_product() != null) query.setParameter("id_product", getId_product());
-		if(getComune() != null && !getComune().trim().isEmpty()) query.setParameter("comune", getComune().trim());
+		if(!comuniFiltro.isEmpty()) query.setParameterList("comuni", comuniFiltro);
 		if(getDate_from() != null) query.setParameter("date_from", getDate_from());
 		if(getDate_to() != null) query.setParameter("date_to", getDate_to());
 		return (List<Analisi>) query.list();

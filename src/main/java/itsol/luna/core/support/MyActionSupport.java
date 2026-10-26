@@ -245,4 +245,32 @@ public class MyActionSupport extends ActionSupport {
 		this.comune = comune;
 	}
 
+	//------------------------------ comuni selezionati nel filtro analisi
+	private String[] comuni_selezionati;
+	public String[] getComuni_selezionati() {
+		return comuni_selezionati;
+	}
+	public void setComuni_selezionati(String[] comuni_selezionati) {
+		this.comuni_selezionati = comuni_selezionati;
+	}
+
+	/**
+	 * Restituisce i comuni selezionati, mantenendo la compatibilita' con il
+	 * precedente parametro singolo "comune".
+	 */
+	public List<String> getComuniFiltro() {
+		List<String> result = new ArrayList<String>();
+		if(comuni_selezionati != null) {
+			for(String valore : comuni_selezionati) {
+				if(valore != null && !valore.trim().isEmpty() && !result.contains(valore.trim())) {
+					result.add(valore.trim());
+				}
+			}
+		}
+		if(comune != null && !comune.trim().isEmpty() && !result.contains(comune.trim())) {
+			result.add(comune.trim());
+		}
+		return result;
+	}
+
 }
