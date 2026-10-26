@@ -5,6 +5,8 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -26,6 +28,7 @@ import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfWriter;
 
 import itsol.luna.core.beans.Analisi;
+import itsol.luna.core.beans.AnalisiComuneSummary;
 import itsol.luna.core.interfaces.MyActionInterface;
 import itsol.luna.core.support.ContextSupport;
 import itsol.luna.core.support.LogSupport;
@@ -41,6 +44,7 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 	private static final long serialVersionUID = 9033118516423577917L;
 
 	private List<Analisi> analisi = new ArrayList<Analisi>(0);
+	private List<Analisi> analisiRiepilogo = new ArrayList<Analisi>(0);
 
 	public List<Analisi> getAnalisi() {
 		return analisi;
@@ -120,7 +124,10 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 
 			if (SessionSupport.checkSession()) {
 
-				this.analisi = eseguiQuery(sx);
+				// Il riepilogo percentuale usa tutte le analisi che rispettano i filtri
+				// anagrafici e temporali, prima dell'eventuale filtro "solo fuori limite".
+				this.analisiRiepilogo = eseguiQuery(sx, false);
+				this.analisi = eseguiQuery(sx, true);
 
 				try {
 					Document document = new Document();
@@ -175,6 +182,25 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 					totale.addCell(selector.process(tot.toString()));
 					document.add(totale);
 
+					Map<String, AnalisiComuneSummary> riepilogo = creaRiepilogoComuni();
+					if(!riepilogo.isEmpty()) {
+						document.add(new Phrase("Riepilogo per comune", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10)));
+						PdfPTable comuni = new PdfPTable(new float[] { 22,10,17,17,17,17 });
+						comuni.setWidthPercentage(100);
+						comuni.setSpacingBefore(6);
+						String[] titoli = { "Comune", "Analisi", "Non valide", "Cadmio fuori limite", "Arsenico fuori limite", "Nichel fuori limite" };
+						for(String t : titoli) comuni.addCell(selector.process(t));
+						for(AnalisiComuneSummary r : riepilogo.values()) {
+							comuni.addCell(selector.process(r.getComune()));
+							comuni.addCell(selector.process(String.valueOf(r.getTotale())));
+							comuni.addCell(selector.process(r.getNonValide() + " (" + r.getPercentualeNonValide() + ")"));
+							comuni.addCell(selector.process(r.getCadmioFuoriLimite() + " (" + r.getPercentualeCadmio() + ")"));
+							comuni.addCell(selector.process(r.getArsenicoFuoriLimite() + " (" + r.getPercentualeArsenico() + ")"));
+							comuni.addCell(selector.process(r.getNichelFuoriLimite() + " (" + r.getPercentualeNichel() + ")"));
+						}
+						document.add(comuni);
+					}
+
 					document.close();
 
 					// ------------------------------ genero il pdf
@@ -220,8 +246,24 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 		return value == null ? "" : value.toString();
 	}
 
+	private Map<String, AnalisiComuneSummary> creaRiepilogoComuni() {
+		Map<String, AnalisiComuneSummary> riepilogo = new TreeMap<String, AnalisiComuneSummary>(String.CASE_INSENSITIVE_ORDER);
+		for(Analisi a : this.analisiRiepilogo) {
+			String comune = a.getCliente() == null ? null : a.getCliente().getLegal_city();
+			if(comune == null || comune.trim().isEmpty()) comune = "Comune non indicato";
+			comune = comune.trim();
+			AnalisiComuneSummary r = riepilogo.get(comune);
+			if(r == null) {
+				r = new AnalisiComuneSummary(comune);
+				riepilogo.put(comune, r);
+			}
+			r.add(a);
+		}
+		return riepilogo;
+	}
+
 	@SuppressWarnings("unchecked")
-	private List<Analisi> eseguiQuery(Session sx) {
+	private List<Analisi> eseguiQuery(Session sx, boolean applicaFiltroFuoriLimite) {
 		List<String> comuniFiltro = getComuniFiltro();
 		String q = "SELECT a FROM Analisi a INNER JOIN a.cliente c WHERE a.year.id = :id_sowing_year";
 		boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
@@ -231,7 +273,7 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 		if(!comuniFiltro.isEmpty()) q += " AND c.legal_city IN (:comuni)";
 		if(getDate_from() != null) q += " AND a.dataAnalisi >= :date_from";
 		if(getDate_to() != null) q += " AND a.dataAnalisi <= :date_to";
-		q += clausolaFuoriLimite();
+		if(applicaFiltroFuoriLimite) q += clausolaFuoriLimite();
 		q += " ORDER BY UPPER(c.business_name) ASC, a.dataAnalisi ASC, a.id ASC";
 		Query query = sx.createQuery(q);
 		query.setParameter("id_sowing_year", SessionSupport.getSowingYear().getId());
