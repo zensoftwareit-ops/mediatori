@@ -24,6 +24,15 @@ public class Sale implements Serializable {
 	private Date update_date;
 	private Date sale_date;
 	private String sale_type;
+	private String contractLogo;
+
+	public String getContractLogo() {
+		return contractLogo;
+	}
+
+	public void setContractLogo(String contractLogo) {
+		this.contractLogo = contractLogo;
+	}
 	
 	private String pickup_time;
 	private String pickup_way;

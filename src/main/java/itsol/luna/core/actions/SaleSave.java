@@ -68,6 +68,22 @@ public class SaleSave extends MyActionSupport implements MyActionInterface {
 		try {
 			
 			if(SessionSupport.checkSession()) {
+				// Fotografa il logo al momento della creazione: le ristampe storiche
+				// non cambiano quando viene aggiornato il logo dell'utente.
+				if(this.sale.getId() == null && (this.sale.getContractLogo() == null || this.sale.getContractLogo().trim().isEmpty())) {
+					String logo = SessionSupport.getAdmin().getDocumentLogo();
+					this.sale.setContractLogo(logo == null || logo.trim().isEmpty() ? "logo_ghisoni.jpg" : logo.trim());
+				}
+				if(this.sale.getId() != null && (this.sale.getContractLogo() == null || this.sale.getContractLogo().trim().isEmpty())) {
+					Session logoSession = HibernateUtil.getSessionFactory().openSession();
+					try {
+						String storedLogo = (String)logoSession.createQuery("SELECT contractLogo FROM Sale WHERE id = :id")
+								.setParameter("id", this.sale.getId()).uniqueResult();
+						this.sale.setContractLogo(storedLogo == null || storedLogo.trim().isEmpty() ? "logo_ghisoni.jpg" : storedLogo);
+					} finally {
+						logoSession.close();
+					}
+				}
 				
 				//------------------------------ assegno commessa all'utente
 				try {

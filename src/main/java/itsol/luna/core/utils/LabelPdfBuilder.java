@@ -83,7 +83,7 @@ public final class LabelPdfBuilder {
 		PdfPTable header = new PdfPTable(1);
 		header.setWidthPercentage(100f);
 		if(logoPath != null && !logoPath.trim().isEmpty()) {
-			Image logo = Image.getInstance(logoPath);
+			Image logo = PdfLogoSupport.logoImage(logoPath);
 			logo.scaleToFit(210f, 48f);
 			PdfPCell logoCell = new PdfPCell(logo, false);
 			logoCell.setBorder(Rectangle.NO_BORDER);

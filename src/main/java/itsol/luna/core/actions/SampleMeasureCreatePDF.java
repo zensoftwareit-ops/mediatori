@@ -31,6 +31,7 @@ import itsol.luna.core.support.LogSupport;
 import itsol.luna.core.support.MyActionSupport;
 import itsol.luna.core.support.SessionSupport;
 import itsol.luna.core.utils.HibernateUtil;
+import itsol.luna.core.utils.PdfLogoSupport;
 
 public class SampleMeasureCreatePDF extends MyActionSupport implements MyActionInterface {
 
@@ -204,6 +205,7 @@ public class SampleMeasureCreatePDF extends MyActionSupport implements MyActionI
 					document.setPageSize(PageSize.A4.rotate());
 			
 					document.open();
+					PdfLogoSupport.addCurrentLogo(document, 180f, 55f);
 					
 					String title = "Resa";
 					

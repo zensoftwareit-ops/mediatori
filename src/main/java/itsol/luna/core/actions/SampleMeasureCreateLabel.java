@@ -1,12 +1,10 @@
 package itsol.luna.core.actions;
 
 import java.io.OutputStream;
-import java.nio.file.Paths;
 import java.util.Date;
 import java.util.logging.Level;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.struts2.ServletActionContext;
 import org.hibernate.Session;
 import itsol.luna.core.beans.Customer;
 import itsol.luna.core.beans.Product;
@@ -17,6 +15,7 @@ import itsol.luna.core.support.MyActionSupport;
 import itsol.luna.core.support.SessionSupport;
 import itsol.luna.core.utils.HibernateUtil;
 import itsol.luna.core.utils.LabelPdfBuilder;
+import itsol.luna.core.utils.PdfLogoSupport;
 
 public class SampleMeasureCreateLabel extends MyActionSupport implements MyActionInterface {
 	private static final long serialVersionUID = -3174090430662858720L;
@@ -40,7 +39,7 @@ public class SampleMeasureCreateLabel extends MyActionSupport implements MyActio
 				ContextSupport.getResponse().sendError(HttpServletResponse.SC_NOT_FOUND);
 				return null;
 			}
-			String logoPath = Paths.get(ServletActionContext.getServletContext().getResource("/images/logo_ghisoni.jpg").toURI()).toString();
+			String logoPath = PdfLogoSupport.currentLogoPath();
 			byte[] pdf = LabelPdfBuilder.sampleLabel(customer, product, label_average, label_date == null ? new Date() : label_date, logoPath);
 			writePdf(pdf, "Etichetta-campione.pdf");
 			LogSupport.log(op() + "E' stata generata l'etichetta aggregata del campione.", Level.INFO);

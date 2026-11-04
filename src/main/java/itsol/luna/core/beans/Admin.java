@@ -26,6 +26,15 @@ public class Admin implements Serializable {
 	private String level;
 	private String smsEnabled;
 	private String smsApiKey;
+	private String documentLogo;
+
+	public String getDocumentLogo() {
+		return documentLogo;
+	}
+
+	public void setDocumentLogo(String documentLogo) {
+		this.documentLogo = documentLogo;
+	}
 
 	
 	public String getSmsApiKey() {

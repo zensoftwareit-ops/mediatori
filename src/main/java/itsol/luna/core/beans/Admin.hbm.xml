@@ -41,6 +41,9 @@
 		<property name="smsApiKey" type="java.lang.String">
 			<column name="smsApiKey" />
 		</property>
+		<property name="documentLogo" type="java.lang.String">
+			<column name="document_logo" />
+		</property>
 		<set name="sale_counters" inverse="true" table="sale_counters"
 			lazy="false" fetch="select" cascade="none" order-by="id DESC">
 			<key>

@@ -1,11 +1,9 @@
 package itsol.luna.core.actions;
 
 import java.io.OutputStream;
-import java.nio.file.Paths;
 import java.util.logging.Level;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.struts2.ServletActionContext;
 import org.hibernate.Session;
 import itsol.luna.core.beans.Customer;
 import itsol.luna.core.beans.Product;
@@ -16,6 +14,7 @@ import itsol.luna.core.support.MyActionSupport;
 import itsol.luna.core.support.SessionSupport;
 import itsol.luna.core.utils.HibernateUtil;
 import itsol.luna.core.utils.LabelPdfBuilder;
+import itsol.luna.core.utils.PdfLogoSupport;
 
 public class AnalisiLabelCreatePDF extends MyActionSupport implements MyActionInterface {
 	private static final long serialVersionUID = 1L;
@@ -32,7 +31,7 @@ public class AnalisiLabelCreatePDF extends MyActionSupport implements MyActionIn
 				ContextSupport.getResponse().sendError(HttpServletResponse.SC_NOT_FOUND);
 				return null;
 			}
-			String logoPath = Paths.get(ServletActionContext.getServletContext().getResource("/images/logo_ghisoni.jpg").toURI()).toString();
+			String logoPath = PdfLogoSupport.currentLogoPath();
 			byte[] pdf = LabelPdfBuilder.analysisLabel(customer, product, logoPath);
 			HttpServletResponse response = ContextSupport.getResponse();
 			response.setContentType("application/pdf");

@@ -35,6 +35,7 @@ import itsol.luna.core.support.LogSupport;
 import itsol.luna.core.support.MyActionSupport;
 import itsol.luna.core.support.SessionSupport;
 import itsol.luna.core.utils.HibernateUtil;
+import itsol.luna.core.utils.PdfLogoSupport;
 
 public class CommissionCreatePDF extends MyActionSupport implements MyActionInterface {
 
@@ -103,11 +104,7 @@ public class CommissionCreatePDF extends MyActionSupport implements MyActionInte
 				cell1.setBorderWidthBottom(0);
 				table.addCell(cell1);
 
-				PdfPCell cell2 = new PdfPCell();
-				cell2.setBorderWidthTop(0);
-				cell2.setBorderWidthLeft(0);
-				cell2.setBorderWidthRight(0);
-				cell2.setBorderWidthBottom(0);
+				PdfPCell cell2 = PdfLogoSupport.currentLogoCell(105f, 30f);
 				table.addCell(cell2);
 
 				ph = selector.process("Pagina " + writer.getPageNumber());

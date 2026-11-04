@@ -19,6 +19,7 @@ import itsol.luna.core.support.ContextSupport;
 import itsol.luna.core.support.MyActionSupport;
 import itsol.luna.core.support.SessionSupport;
 import itsol.luna.core.utils.HibernateUtil;
+import itsol.luna.core.utils.PdfLogoSupport;
 
 public class CustomerCreatePDF extends MyActionSupport implements MyActionInterface {
 
@@ -71,6 +72,7 @@ public class CustomerCreatePDF extends MyActionSupport implements MyActionInterf
 					Phrase p;
 							
 					document.open();
+					PdfLogoSupport.addCurrentLogo(document, 180f, 55f);
 					
 					//
 					try {

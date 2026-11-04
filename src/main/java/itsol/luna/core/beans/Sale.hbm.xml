@@ -21,6 +21,9 @@
 		<property name="sale_type" type="java.lang.String">
 			<column name="sale_type" />
 		</property>
+		<property name="contractLogo" type="java.lang.String">
+			<column name="contract_logo" />
+		</property>
 		<property name="pickup_type" type="java.lang.String">
 			<column name="pickup_type" />
 		</property>

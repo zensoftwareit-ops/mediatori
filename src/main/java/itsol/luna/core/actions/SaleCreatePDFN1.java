@@ -32,6 +32,7 @@ import itsol.luna.core.support.LogSupport;
 import itsol.luna.core.support.MyActionSupport;
 import itsol.luna.core.support.SessionSupport;
 import itsol.luna.core.utils.HibernateUtil;
+import itsol.luna.core.utils.PdfLogoSupport;
 
 public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterface {
 
@@ -74,10 +75,10 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 
 			try {
 
-				Path path1 = Paths.get(ServletActionContext.getServletContext().getResource("/images/logo_ghisoni.jpg").toURI());
-				Image img1 = Image.getInstance(path1.toAbsolutePath().toString());
+				Image img1 = PdfLogoSupport.logoImage(PdfLogoSupport.contractLogoPath(sale));
 
-				PdfPTable table = new PdfPTable(new float[] { 1,4,1 });
+				PdfPTable table = new PdfPTable(PdfLogoSupport.usesNewContractLogo(sale)
+						? new float[] { 2,3,1 } : new float[] { 1,4,1 });
 				table.setTotalWidth(530);
 				table.setLockedWidth(true);
 
