@@ -273,4 +273,25 @@ public class MyActionSupport extends ActionSupport {
 		return result;
 	}
 
+	//------------------------------ gruppi merceologici selezionati nel filtro analisi
+	private String[] gruppi_selezionati;
+	public String[] getGruppi_selezionati() {
+		return gruppi_selezionati;
+	}
+	public void setGruppi_selezionati(String[] gruppi_selezionati) {
+		this.gruppi_selezionati = gruppi_selezionati;
+	}
+
+	public List<String> getGruppiFiltro() {
+		List<String> result = new ArrayList<String>();
+		if(gruppi_selezionati != null) {
+			for(String valore : gruppi_selezionati) {
+				if(valore != null && !valore.trim().isEmpty() && !result.contains(valore.trim())) {
+					result.add(valore.trim());
+				}
+			}
+		}
+		return result;
+	}
+
 }

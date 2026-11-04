@@ -3,6 +3,8 @@
 <div class="container-fluid">
 	<div class="row vh-100 fix-height">
 		<%@include file="sidebar.jsp"%>
+		<s:date name="%{date_from}" format="dd/MM/yyyy" var="dfrom" />
+		<s:date name="%{date_to}" format="dd/MM/yyyy" var="dto" />
 
 		<div class="col bg-light">
 			<div class="p-4">
@@ -12,6 +14,9 @@
 						<a class="btn btn-primary btn-sm mr-3 mb-2" role="button" href="analisi/new">
 							<i class="fas fa-plus"></i> Nuovo
 						</a>
+						<a class="btn btn-secondary btn-sm mr-3 mb-2" role="button" href="analisi/etichetta">
+							<i class="fas fa-tag"></i> Etichetta laboratorio
+						</a>
 						<s:form cssClass="form-inline" method="get" action="analisi" theme="simple">
 							<div class="form-group mr-1 mb-2">
 								<sj:autocompleter key="id_customer" list="customers"
@@ -20,6 +25,26 @@
 							<div class="form-group mr-1 mb-2">
 								<sj:autocompleter key="id_product" list="products"
 									listValue="name" listKey="id" placeholder="Riso" />
+							</div>
+							<div class="form-group dropdown mr-1 mb-2" id="analisiGruppiDropdown">
+								<button class="btn btn-light btn-sm border dropdown-toggle" type="button"
+									id="analisiGruppiButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									<span id="analisiGruppiButtonText">Tutti i gruppi</span>
+								</button>
+								<div class="dropdown-menu p-2 analisi-gruppi-menu" aria-labelledby="analisiGruppiButton" style="min-width: 260px;">
+									<div style="max-height: 240px; overflow-y: auto;">
+										<s:iterator value="groups" var="gruppoVoce">
+											<label class="form-check mb-1">
+												<input class="form-check-input analisi-gruppo-checkbox" type="checkbox"
+													name="gruppi_selezionati" value='<s:property value="%{#gruppoVoce.tag}" />'
+													<s:if test="%{gruppiFiltro.contains(#gruppoVoce.tag)}">checked="checked"</s:if> />
+												<span><s:property value="%{#gruppoVoce.listName}" /></span>
+											</label>
+										</s:iterator>
+									</div>
+									<div class="dropdown-divider"></div>
+									<button type="button" class="btn btn-link btn-sm p-0" id="analisiGruppiClear">Deseleziona tutti</button>
+								</div>
 							</div>
 							<div class="form-group dropdown mr-1 mb-2" id="analisiComuniDropdown">
 								<button class="btn btn-light btn-sm border dropdown-toggle" type="button"
@@ -73,11 +98,12 @@
 						<s:action name="analisi/list" executeResult="true">
 							<s:param name="id_customer" value="%{id_customer}" />
 							<s:param name="id_product" value="%{id_product}" />
+							<s:param name="gruppi_selezionati" value="%{gruppi_selezionati}" />
 							<s:param name="comuni_selezionati" value="%{comuni_selezionati}" />
 							<s:param name="comune" value="%{comune}" />
 							<s:param name="fuori_limite" value="%{fuori_limite}" />
-							<s:param name="date_from" value="%{date_from}" />
-							<s:param name="date_to" value="%{date_to}" />
+							<s:param name="date_from" value="%{#dfrom}" />
+							<s:param name="date_to" value="%{#dto}" />
 						</s:action>
 					</div>
 				</div>
@@ -91,6 +117,7 @@ $(function() {
 	var $dropdown = $('#analisiComuniDropdown');
 	var $search = $('#analisiComuniSearch');
 	var $checkboxes = $('.analisi-comune-checkbox');
+	var $gruppi = $('.analisi-gruppo-checkbox');
 
 	function aggiornaTestoComuni() {
 		var selezionati = $checkboxes.filter(':checked').length;
@@ -100,6 +127,7 @@ $(function() {
 	$('.analisi-comuni-menu').on('click', function(event) {
 		event.stopPropagation();
 	});
+	$('.analisi-gruppi-menu').on('click', function(event) { event.stopPropagation(); });
 
 	$search.on('input', function() {
 		var ricerca = $(this).val().toLowerCase().trim();
@@ -118,8 +146,18 @@ $(function() {
 	$dropdown.on('shown.bs.dropdown', function() {
 		$search.trigger('focus');
 	});
+	function aggiornaTestoGruppi() {
+		var selezionati = $gruppi.filter(':checked').length;
+		$('#analisiGruppiButtonText').text(selezionati > 0 ? 'Gruppi selezionati: ' + selezionati : 'Tutti i gruppi');
+	}
+	$gruppi.on('change', aggiornaTestoGruppi);
+	$('#analisiGruppiClear').on('click', function() {
+		$gruppi.prop('checked', false);
+		aggiornaTestoGruppi();
+	});
 
 	aggiornaTestoComuni();
+	aggiornaTestoGruppi();
 });
 </script>
 

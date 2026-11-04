@@ -16,7 +16,7 @@
 				<th scope="col">Difetti 2</th>
 				<th scope="col">Note</th>
 				<th scope="col">1000 grani</th>
-				<th scope="col" colspan="3">&nbsp;</th>
+				<th scope="col" colspan="2">&nbsp;</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -51,7 +51,7 @@
 					<td><s:submit type="button" cssClass="btn btn-primary btn-sm">
 							<i class="fas fa-save"></i>
 						</s:submit></td>
-					<td colspan="2"></td>
+					<td></td>
 				</s:form>
 			</tr>
 
@@ -90,11 +90,6 @@
 								<i class="fas fa-save"></i>
 							</s:submit></td>
 						<td><a
-							href="samples_measures/label/<s:property value="%{id}" />"
-							target="_blank" title="Stampa etichetta"
-							role="button" class="btn btn-secondary btn-sm no-loader"><i
-								class="fas fa-print"></i></a></td>
-						<td><a
 							href="samples_measures/delete/<s:property value="%{id}" />"
 							role="button" class="btn btn-danger btn-sm delete-measure"><i
 								class="fas fa-trash"></i></a></td>
@@ -119,6 +114,23 @@
 						</s:text></b></td>
 				<td></td>
 			</tr>
+
+			<s:if test="%{id_customer != null && id_product != null}">
+			<tr class="table-secondary">
+				<td colspan="12">
+					<s:form action="samples_measures/label" method="post" theme="simple" cssClass="form-inline" target="_blank">
+						<s:hidden name="id_customer" value="%{id_customer}" />
+						<s:hidden name="id_product" value="%{id_product}" />
+						<label class="font-weight-bold mr-2">Etichetta campione</label>
+						<label class="mr-1" for="label_average">Media resa grani:</label>
+						<s:textfield name="label_average" value="%{grains_average}" cssClass="form-control form-control-sm mr-2 numeric" />
+						<label class="mr-1" for="label_date">Data:</label>
+						<sj:datepicker name="label_date" value="%{label_date}" displayFormat="d/m/y" cssClass="form-control form-control-sm mr-2" />
+						<button type="submit" class="btn btn-secondary btn-sm no-loader"><i class="fas fa-print"></i> Stampa etichetta 10x15</button>
+					</s:form>
+				</td>
+			</tr>
+			</s:if>
 
 		</tbody>
 	</table>

@@ -289,6 +289,17 @@
 			<result name="error_debug">/error.jsp</result>
 		</action>
 
+		<action name="analisi/etichetta" class="itsol.luna.core.actions.AnalisiLabel">
+			<result name="success">/analisi_label.jsp</result>
+			<result name="success_nologin" type="redirectAction">
+				<param name="actionName">index</param>
+			</result>
+		</action>
+
+		<action name="analisi/etichetta/print" class="itsol.luna.core.actions.AnalisiLabelCreatePDF">
+			<result name="none"></result>
+		</action>
+
 		<action name="analisi/manage/*"
 			class="itsol.luna.core.actions.AnalisiManage">
 			<param name="id_analisi">{1}</param>
@@ -1017,9 +1028,8 @@
 			<result name="none"></result>
 		</action>
 
-		<action name="samples_measures/label/*"
+		<action name="samples_measures/label"
 			class="itsol.luna.core.actions.SampleMeasureCreateLabel">
-			<param name="id_measure">{1}</param>
 			<result name="none"></result>
 		</action>
 

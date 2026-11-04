@@ -7,13 +7,18 @@
 								method="post" action="analisi/print" theme="simple" id="form-comm-buyer">
 								<s:hidden key="id_customer" />
 								<s:hidden key="id_product" />
+				<s:iterator value="%{gruppi_selezionati}" var="gruppoSelezionato">
+					<s:hidden name="gruppi_selezionati" value="%{#gruppoSelezionato}" />
+				</s:iterator>
 								<s:hidden key="comune" />
 								<s:iterator value="%{comuni_selezionati}" var="comuneSelezionato">
 									<s:hidden name="comuni_selezionati" value="%{#comuneSelezionato}" />
 								</s:iterator>
 								<s:hidden key="fuori_limite" />
-								<s:hidden key="date_from" />
-								<s:hidden key="date_to" />
+				<s:date name="%{date_from}" format="dd/MM/yyyy" var="pdfDateFrom" />
+				<s:date name="%{date_to}" format="dd/MM/yyyy" var="pdfDateTo" />
+				<s:hidden name="date_from" value="%{#pdfDateFrom}" />
+				<s:hidden name="date_to" value="%{#pdfDateTo}" />
 								<button type="submit" class="btn btn-primary btn-sm mr-1">
 									<i class="fas fa-print"></i> Stampa analisi
 								</button>

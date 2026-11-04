@@ -2,6 +2,8 @@ package itsol.luna.core.actions.inc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Date;
+import java.util.Calendar;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -87,14 +89,24 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 	@SuppressWarnings("unchecked")
 	private List<Analisi> eseguiQuery(Session sx) {
 		List<String> comuniFiltro = getComuniFiltro();
-		String q = "SELECT a FROM Analisi a INNER JOIN a.cliente c WHERE a.year.id = :id_sowing_year";
+		List<String> gruppiFiltro = getGruppiFiltro();
+		String q = "SELECT a FROM Analisi a INNER JOIN a.cliente c INNER JOIN a.prodotto p WHERE a.year.id = :id_sowing_year";
 		boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
 		if(filtraAdmin) q += " AND a.id_admin = :id_admin";
 		if(getId_customer() != null) q += " AND c.id = :id_customer";
-		if(getId_product() != null) q += " AND a.prodotto.id = :id_product";
+		if(getId_product() != null) q += " AND p.id = :id_product";
 		if(!comuniFiltro.isEmpty()) q += " AND c.legal_city IN (:comuni)";
+		if(!gruppiFiltro.isEmpty()) {
+			q += " AND (";
+			for(int i = 0; i < gruppiFiltro.size(); i++) {
+				if(i > 0) q += " OR ";
+				q += "UPPER(p.groups) LIKE :gruppo" + i;
+			}
+			q += ")";
+		}
 		if(getDate_from() != null) q += " AND a.dataAnalisi >= :date_from";
-		if(getDate_to() != null) q += " AND a.dataAnalisi <= :date_to";
+		Date dataFineEffettiva = getDate_to() != null ? fineGiornata(getDate_to()) : (getDate_from() != null ? new Date() : null);
+		if(dataFineEffettiva != null) q += " AND a.dataAnalisi <= :date_to";
 		q += clausolaFuoriLimite();
 		q += " ORDER BY UPPER(c.business_name) ASC, a.dataAnalisi ASC, a.id ASC";
 
@@ -104,9 +116,20 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 		if(getId_customer() != null) query.setParameter("id_customer", getId_customer());
 		if(getId_product() != null) query.setParameter("id_product", getId_product());
 		if(!comuniFiltro.isEmpty()) query.setParameterList("comuni", comuniFiltro);
+		for(int i = 0; i < gruppiFiltro.size(); i++) query.setParameter("gruppo" + i, gruppiFiltro.get(i).toUpperCase() + "%");
 		if(getDate_from() != null) query.setParameter("date_from", getDate_from());
-		if(getDate_to() != null) query.setParameter("date_to", getDate_to());
+		if(dataFineEffettiva != null) query.setParameter("date_to", dataFineEffettiva);
 		return (List<Analisi>) query.list();
+	}
+
+	private Date fineGiornata(Date data) {
+		Calendar c = Calendar.getInstance();
+		c.setTime(data);
+		c.set(Calendar.HOUR_OF_DAY, 23);
+		c.set(Calendar.MINUTE, 59);
+		c.set(Calendar.SECOND, 59);
+		c.set(Calendar.MILLISECOND, 999);
+		return c.getTime();
 	}
 
 	private String clausolaFuoriLimite() {

@@ -9,6 +9,7 @@ import org.hibernate.Session;
 
 import itsol.luna.core.beans.Customer;
 import itsol.luna.core.beans.Product;
+import itsol.luna.core.beans.ProductGroup;
 import itsol.luna.core.interfaces.MyActionInterface;
 import itsol.luna.core.support.ContextSupport;
 import itsol.luna.core.support.LogSupport;
@@ -59,6 +60,20 @@ public List<Customer> getCustomers() {
 
 public List<Product> getProducts() {
 	return SessionSupport.getProducts();
+}
+
+@SuppressWarnings("unchecked")
+public List<ProductGroup> getGroups() {
+	List<ProductGroup> groups = new ArrayList<ProductGroup>(0);
+	Session sx = HibernateUtil.getSessionFactory().openSession();
+	try {
+		groups = (List<ProductGroup>)sx.createQuery("FROM ProductGroup ORDER BY tag").list();
+	} catch(Exception ex) {
+		LogSupport.log(op() + "Errore durante il caricamento dei gruppi merceologici: " + ExceptionUtils.getMessage(ex), Level.SEVERE);
+	} finally {
+		sx.close();
+	}
+	return groups;
 }
 
 @SuppressWarnings("unchecked")

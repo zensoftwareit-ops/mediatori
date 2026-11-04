@@ -5,8 +5,8 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.Date;
+import java.util.Calendar;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -28,7 +28,6 @@ import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfWriter;
 
 import itsol.luna.core.beans.Analisi;
-import itsol.luna.core.beans.AnalisiComuneSummary;
 import itsol.luna.core.interfaces.MyActionInterface;
 import itsol.luna.core.support.ContextSupport;
 import itsol.luna.core.support.LogSupport;
@@ -116,8 +115,10 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 		Session sx = HibernateUtil.getSessionFactory().openSession();
 		title = "Elenco analisi";
 		if(getDate_from() != null) title += " dal " + new SimpleDateFormat("dd/MM/yyyy").format(getDate_from());
-		if(getDate_to() != null) title += " al " + new SimpleDateFormat("dd/MM/yyyy").format(getDate_to());
+		Date dataFineEffettiva = getDate_to() != null ? fineGiornata(getDate_to()) : (getDate_from() != null ? new Date() : null);
+		if(dataFineEffettiva != null) title += " al " + new SimpleDateFormat("dd/MM/yyyy").format(dataFineEffettiva);
 		if(!getComuniFiltro().isEmpty()) title += " - Comuni: " + String.join(", ", getComuniFiltro());
+		if(!getGruppiFiltro().isEmpty()) title += " - Gruppi: " + String.join(", ", getGruppiFiltro());
 
 
 		try {
@@ -150,11 +151,10 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 
 					document.open();
 
-					Double tot = 0.00;
-					PdfPTable table = new PdfPTable(new float[] { 8,13,15,14,11,7,7,8,7,7,6,9 });
+					PdfPTable table = new PdfPTable(new float[] { 8,13,17,15,12,7,7,8,7,9 });
 					table.setWidthPercentage(100);
 					table.setSpacingAfter(12);
-					String[] intestazioni = { "Data", "Campione", "Cliente", "Riso", "Comune", "Cadmio", "Arsenico tot", "Arsenico inorg.", "Nichel", "Costo", "Pagato", "Esito" };
+					String[] intestazioni = { "Data", "Campione", "Cliente", "Riso", "Comune", "Cadmio", "Arsenico tot", "Arsenico inorg.", "Nichel", "Esito" };
 					for(String intestazione : intestazioni) table.addCell(selector.process(intestazione));
 					for(Analisi a : this.analisi) {
 						table.addCell(selector.process(a.getDataAnalisi() == null ? "" : new SimpleDateFormat("dd/MM/yyyy").format(a.getDataAnalisi())));
@@ -166,40 +166,13 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 						table.addCell(selector.process(valore(a.getArsenicoTot())));
 						table.addCell(a.isArsenicoFuoriLimite() ? selectorRed.process(valore(a.getArsenicoInorganico())) : selector.process(valore(a.getArsenicoInorganico())));
 						table.addCell(a.isNichelFuoriLimite() ? selectorRed.process(valore(a.getNichel())) : selector.process(valore(a.getNichel())));
-						table.addCell(selector.process(valore(a.getCosto())));
-						table.addCell(selector.process(valore(a.getPagato())));
 						PdfPCell esito = new PdfPCell(new Phrase(a.getEsito(), FontFactory.getFont(FontFactory.HELVETICA_BOLD, 7, a.isNonValida() ? BaseColor.WHITE : BaseColor.BLACK)));
 						if(a.isNonValida()) esito.setBackgroundColor(BaseColor.RED);
 						table.addCell(esito);
-						if("NO".equals(a.getPagato()) && a.getCosto() != null) tot += a.getCosto();
 					}
 					document.add(table);
 
-					PdfPTable totale = new PdfPTable(new float[] { 80,20 });
-					totale.setWidthPercentage(100);
-					totale.setSpacingAfter(15);
-					totale.addCell(selector.process("TOT. DA PAGARE"));
-					totale.addCell(selector.process(tot.toString()));
-					document.add(totale);
-
-					Map<String, AnalisiComuneSummary> riepilogo = creaRiepilogoComuni();
-					if(!riepilogo.isEmpty()) {
-						document.add(new Phrase("Riepilogo per comune", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10)));
-						PdfPTable comuni = new PdfPTable(new float[] { 22,10,17,17,17,17 });
-						comuni.setWidthPercentage(100);
-						comuni.setSpacingBefore(6);
-						String[] titoli = { "Comune", "Analisi", "Non valide", "Cadmio fuori limite", "Arsenico fuori limite", "Nichel fuori limite" };
-						for(String t : titoli) comuni.addCell(selector.process(t));
-						for(AnalisiComuneSummary r : riepilogo.values()) {
-							comuni.addCell(selector.process(r.getComune()));
-							comuni.addCell(selector.process(String.valueOf(r.getTotale())));
-							comuni.addCell(selector.process(r.getNonValide() + " (" + r.getPercentualeNonValide() + ")"));
-							comuni.addCell(selector.process(r.getCadmioFuoriLimite() + " (" + r.getPercentualeCadmio() + ")"));
-							comuni.addCell(selector.process(r.getArsenicoFuoriLimite() + " (" + r.getPercentualeArsenico() + ")"));
-							comuni.addCell(selector.process(r.getNichelFuoriLimite() + " (" + r.getPercentualeNichel() + ")"));
-						}
-						document.add(comuni);
-					}
+					aggiungiRiepilogoTotale(document, selector);
 
 					document.close();
 
@@ -246,33 +219,56 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 		return value == null ? "" : value.toString();
 	}
 
-	private Map<String, AnalisiComuneSummary> creaRiepilogoComuni() {
-		Map<String, AnalisiComuneSummary> riepilogo = new TreeMap<String, AnalisiComuneSummary>(String.CASE_INSENSITIVE_ORDER);
-		for(Analisi a : this.analisiRiepilogo) {
-			String comune = a.getCliente() == null ? null : a.getCliente().getLegal_city();
-			if(comune == null || comune.trim().isEmpty()) comune = "Comune non indicato";
-			comune = comune.trim();
-			AnalisiComuneSummary r = riepilogo.get(comune);
-			if(r == null) {
-				r = new AnalisiComuneSummary(comune);
-				riepilogo.put(comune, r);
-			}
-			r.add(a);
+	private void aggiungiRiepilogoTotale(Document document, FontSelector selector) throws DocumentException {
+		int totale = analisiRiepilogo.size();
+		int nonValide = 0, cadmio = 0, arsenico = 0, nichel = 0;
+		for(Analisi a : analisiRiepilogo) {
+			if(a.isNonValida()) nonValide++;
+			if(a.isCadmioFuoriLimite()) cadmio++;
+			if(a.isArsenicoFuoriLimite()) arsenico++;
+			if(a.isNichelFuoriLimite()) nichel++;
 		}
-		return riepilogo;
+		int valide = totale - nonValide;
+		document.add(new Phrase("Riepilogo totale", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10)));
+		PdfPTable riepilogo = new PdfPTable(new float[] { 12,18,18,18,18,18 });
+		riepilogo.setWidthPercentage(100);
+		riepilogo.setSpacingBefore(6);
+		String[] titoli = { "Analisi", "Valide", "Non valide", "Cadmio fuori limite", "Arsenico fuori limite", "Nichel fuori limite" };
+		for(String t : titoli) riepilogo.addCell(selector.process(t));
+		riepilogo.addCell(selector.process(String.valueOf(totale)));
+		riepilogo.addCell(selector.process(valide + " (" + percentuale(valide, totale) + ")"));
+		riepilogo.addCell(selector.process(nonValide + " (" + percentuale(nonValide, totale) + ")"));
+		riepilogo.addCell(selector.process(cadmio + " (" + percentuale(cadmio, totale) + ")"));
+		riepilogo.addCell(selector.process(arsenico + " (" + percentuale(arsenico, totale) + ")"));
+		riepilogo.addCell(selector.process(nichel + " (" + percentuale(nichel, totale) + ")"));
+		document.add(riepilogo);
+	}
+
+	private String percentuale(int valore, int totale) {
+		return totale == 0 ? "0,00%" : String.format(java.util.Locale.ITALY, "%.2f%%", valore * 100d / totale);
 	}
 
 	@SuppressWarnings("unchecked")
 	private List<Analisi> eseguiQuery(Session sx, boolean applicaFiltroFuoriLimite) {
 		List<String> comuniFiltro = getComuniFiltro();
-		String q = "SELECT a FROM Analisi a INNER JOIN a.cliente c WHERE a.year.id = :id_sowing_year";
+		List<String> gruppiFiltro = getGruppiFiltro();
+		String q = "SELECT a FROM Analisi a INNER JOIN a.cliente c INNER JOIN a.prodotto p WHERE a.year.id = :id_sowing_year";
 		boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
 		if(filtraAdmin) q += " AND a.id_admin = :id_admin";
 		if(getId_customer() != null) q += " AND c.id = :id_customer";
-		if(getId_product() != null) q += " AND a.prodotto.id = :id_product";
+		if(getId_product() != null) q += " AND p.id = :id_product";
 		if(!comuniFiltro.isEmpty()) q += " AND c.legal_city IN (:comuni)";
+		if(!gruppiFiltro.isEmpty()) {
+			q += " AND (";
+			for(int i = 0; i < gruppiFiltro.size(); i++) {
+				if(i > 0) q += " OR ";
+				q += "UPPER(p.groups) LIKE :gruppo" + i;
+			}
+			q += ")";
+		}
 		if(getDate_from() != null) q += " AND a.dataAnalisi >= :date_from";
-		if(getDate_to() != null) q += " AND a.dataAnalisi <= :date_to";
+		Date dataFineEffettiva = getDate_to() != null ? fineGiornata(getDate_to()) : (getDate_from() != null ? new Date() : null);
+		if(dataFineEffettiva != null) q += " AND a.dataAnalisi <= :date_to";
 		if(applicaFiltroFuoriLimite) q += clausolaFuoriLimite();
 		q += " ORDER BY UPPER(c.business_name) ASC, a.dataAnalisi ASC, a.id ASC";
 		Query query = sx.createQuery(q);
@@ -281,9 +277,20 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 		if(getId_customer() != null) query.setParameter("id_customer", getId_customer());
 		if(getId_product() != null) query.setParameter("id_product", getId_product());
 		if(!comuniFiltro.isEmpty()) query.setParameterList("comuni", comuniFiltro);
+		for(int i = 0; i < gruppiFiltro.size(); i++) query.setParameter("gruppo" + i, gruppiFiltro.get(i).toUpperCase() + "%");
 		if(getDate_from() != null) query.setParameter("date_from", getDate_from());
-		if(getDate_to() != null) query.setParameter("date_to", getDate_to());
+		if(dataFineEffettiva != null) query.setParameter("date_to", dataFineEffettiva);
 		return (List<Analisi>) query.list();
+	}
+
+	private Date fineGiornata(Date data) {
+		Calendar c = Calendar.getInstance();
+		c.setTime(data);
+		c.set(Calendar.HOUR_OF_DAY, 23);
+		c.set(Calendar.MINUTE, 59);
+		c.set(Calendar.SECOND, 59);
+		c.set(Calendar.MILLISECOND, 999);
+		return c.getTime();
 	}
 
 	private String clausolaFuoriLimite() {

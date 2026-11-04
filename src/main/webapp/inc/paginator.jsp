@@ -13,6 +13,9 @@
 									<s:param name="s" value="%{s}" />
 									<s:param name="id_customer" value="%{id_customer}" />
 									<s:param name="id_product" value="%{id_product}" />
+									<s:iterator value="%{gruppi_selezionati}" var="gruppoSelezionato">
+										<s:param name="gruppi_selezionati" value="%{#gruppoSelezionato}" />
+									</s:iterator>
 									<s:param name="pagato" value="%{pagato}" />
 									<s:param name="comune" value="%{comune}" />
 									<s:iterator value="%{comuni_selezionati}" var="comuneSelezionato">
@@ -37,6 +40,9 @@
 									<s:param name="s" value="%{s}" />
 									<s:param name="id_customer" value="%{id_customer}" />
 									<s:param name="id_product" value="%{id_product}" />
+									<s:iterator value="%{gruppi_selezionati}" var="gruppoSelezionato">
+										<s:param name="gruppi_selezionati" value="%{#gruppoSelezionato}" />
+									</s:iterator>
 									<s:param name="pagato" value="%{pagato}" />
 									<s:param name="comune" value="%{comune}" />
 									<s:iterator value="%{comuni_selezionati}" var="comuneSelezionato">

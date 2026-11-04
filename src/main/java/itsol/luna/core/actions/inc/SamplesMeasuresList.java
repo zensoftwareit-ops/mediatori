@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.Date;
+import java.util.Calendar;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.hibernate.Session;
+import org.hibernate.Query;
 
 import itsol.luna.core.beans.Customer;
 import itsol.luna.core.beans.Product;
@@ -101,6 +103,9 @@ public class SamplesMeasuresList extends MyActionSupport implements MyActionInte
 	public Double getGlobal_average() {
 		return global_average;
 	}
+	public Date getLabel_date() {
+		return new Date();
+	}
 	public void setGlobal_average(Double global_average) {
 		this.global_average = global_average;
 	}
@@ -124,70 +129,37 @@ public class SamplesMeasuresList extends MyActionSupport implements MyActionInte
 					LogSupport.log(op() + ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex), Level.SEVERE);
 				} 
 		
-				if(SessionSupport.checkSessionLevel("admin|super")) {
-					if(getOrderby() != null) {
-						if(getOrderby().equals("customer")) {
-							this.measures = (List<YieldMeasure>)sx.createQuery("SELECT ym FROM YieldMeasure ym INNER JOIN ym.year y INNER JOIN ym.customer c INNER JOIN ym.product p WHERE y.id = :id_year AND c.id = :id_customer AND p.id = :id_product ORDER BY c.internal_code, ym.id, p.id").setParameter("id_year", SessionSupport.getSowingYear().getId()).setParameter("id_customer", getId_customer()).setParameter("id_product", getId_product()).list();
-						} else {
-							//this.measures = (List<YieldMeasure>)sx.createQuery("FROM YieldMeasure WHERE id_customer = :id_customer AND id_product = :id_product ORDER BY id").setParameter("id_customer", getId_customer()).setParameter("id_product", getId_product()).list();
-							this.measures = (List<YieldMeasure>)sx.createQuery("SELECT ym FROM YieldMeasure ym INNER JOIN ym.year y INNER JOIN ym.customer c INNER JOIN ym.product p WHERE y.id = :id_year AND c.id = :id_customer AND p.id = :id_product ORDER BY c.internal_code, ym.id, p.id").setParameter("id_year", SessionSupport.getSowingYear().getId()).setParameter("id_customer", getId_customer()).setParameter("id_product", getId_product()).list();
-						}
-					} else {
-						//this.measures = (List<YieldMeasure>)sx.createQuery("FROM YieldMeasure WHERE id_customer = :id_customer AND id_product = :id_product ORDER BY id").setParameter("id_customer", getId_customer()).setParameter("id_product", getId_product()).list();
-						this.measures = (List<YieldMeasure>)sx.createQuery("SELECT ym FROM YieldMeasure ym INNER JOIN ym.year y INNER JOIN ym.customer c INNER JOIN ym.product p WHERE y.id = :id_year AND c.id = :id_customer AND p.id = :id_product ORDER BY c.internal_code, ym.id, p.id").setParameter("id_year", SessionSupport.getSowingYear().getId()).setParameter("id_customer", getId_customer()).setParameter("id_product", getId_product()).list();
-					}
-					
-				} else {
-					Long id_admin = (Long)SessionSupport.getAdmin().getId();
-					
-					String hql="";
-					
-					hql += "SELECT ym FROM YieldMeasure ym INNER JOIN ym.year y INNER JOIN ym.admin a INNER JOIN ym.customer c INNER JOIN ym.product p WHERE y.id = :id_year AND a.id = :id_admin AND (c.id = :id_customer OR :id_customer IS NULL) AND (p.id = :id_product OR :id_product IS NULL)";
-					
-					if(getDate_from() != null) {
-						hql += " AND DATE(ym.insert_date) >= '" + DateFormatUtils.format(getDate_from(), "yyyy-MM-dd") + "'";
-					}
-					
-					if(getDate_to() != null) {
-						hql += " AND DATE(ym.insert_date) <= '" + DateFormatUtils.format(getDate_to(), "yyyy-MM-dd") + "'";
-					}
-					
-					hql += "ORDER BY c.internal_code, p.id, ym.id";
-
-					this.measures = (List<YieldMeasure>)sx.createQuery(hql).setParameter("id_year", SessionSupport.getSowingYear().getId()).setParameter("id_admin", id_admin).setParameter("id_customer", getId_customer()).setParameter("id_product", getId_product()).list();
-					
-//					if(getOrderby() != null) {
-//						if(getOrderby().equals("customer")) {
-//							this.measures = (List<YieldMeasure>)sx.createQuery("SELECT ym FROM YieldMeasure ym INNER JOIN ym.year y INNER JOIN ym.admin a INNER JOIN ym.customer c INNER JOIN ym.product p WHERE y.id = :id_year AND a.id = :id_admin AND (c.id = :id_customer OR :id_customer IS NULL) AND (p.id = :id_product OR :id_product IS NULL) ORDER BY c.internal_code, p.id, ym.id").setParameter("id_year", SessionSupport.getSowingYear().getId()).setParameter("id_admin", id_admin).setParameter("id_customer", getId_customer()).setParameter("id_product", getId_product()).list();
-//						} else {
-//							this.measures = (List<YieldMeasure>)sx.createQuery("SELECT ym FROM YieldMeasure ym INNER JOIN ym.year y INNER JOIN ym.admin a INNER JOIN ym.customer c INNER JOIN ym.product p WHERE y.id = :id_year AND a.id = :id_admin AND (c.id = :id_customer OR :id_customer IS NULL) AND (p.id = :id_product OR :id_product IS NULL) ORDER BY c.internal_code, p.id, ym.id").setParameter("id_year", SessionSupport.getSowingYear().getId()).setParameter("id_admin", id_admin).setParameter("id_customer", getId_customer()).setParameter("id_product", getId_product()).list();
-//						}
-//					} else {
-//						this.measures = (List<YieldMeasure>)sx.createQuery("SELECT ym FROM YieldMeasure ym INNER JOIN ym.year y INNER JOIN ym.admin a INNER JOIN ym.customer c INNER JOIN ym.product p WHERE y.id = :id_year AND a.id = :id_admin AND (c.id = :id_customer OR :id_customer IS NULL) AND (p.id = :id_product OR :id_product IS NULL) ORDER BY c.internal_code, p.id, ym.id").setParameter("id_year", SessionSupport.getSowingYear().getId()).setParameter("id_admin", id_admin).setParameter("id_customer", getId_customer()).setParameter("id_product", getId_product()).list();
-//					}
-					
-				}
+				String hql = "SELECT ym FROM YieldMeasure ym INNER JOIN ym.year y INNER JOIN ym.customer c INNER JOIN ym.product p WHERE y.id = :id_year";
+				boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
+				if(filtraAdmin) hql += " AND ym.admin.id = :id_admin";
+				if(getId_customer() != null) hql += " AND c.id = :id_customer";
+				if(getId_product() != null) hql += " AND p.id = :id_product";
+				if(getDate_from() != null) hql += " AND ym.insert_date >= :date_from";
+				if(getDate_to() != null) hql += " AND ym.insert_date <= :date_to";
+				hql += " ORDER BY c.internal_code, p.id, ym.id";
+				Query query = sx.createQuery(hql).setParameter("id_year", SessionSupport.getSowingYear().getId());
+				if(filtraAdmin) query.setParameter("id_admin", SessionSupport.getAdmin().getId());
+				if(getId_customer() != null) query.setParameter("id_customer", getId_customer());
+				if(getId_product() != null) query.setParameter("id_product", getId_product());
+				if(getDate_from() != null) query.setParameter("date_from", getDate_from());
+				if(getDate_to() != null) query.setParameter("date_to", fineGiornata(getDate_to()));
+				this.measures = (List<YieldMeasure>)query.list();
 				
 				try {
 					if(this.measures.size() > 0) {
-
-						
+						int grainsCount = 0, globalCount = 0, defects1Count = 0, defects2Count = 0;
 						Iterator<YieldMeasure> i = this.measures.iterator();
 						while(i.hasNext()) {
 							YieldMeasure ym = i.next();
-							
-
-							
-							this.grains_average = this.grains_average + ym.getGrains_yield();
-							this.global_average = this.global_average + ym.getGlobal_yield();
-							this.defects_average_1 = this.defects_average_1 + ym.getDefects_1();
-							this.defects_average_2 = this.defects_average_2 + ym.getDefects_2();
+							if(ym.getGrains_yield() != null) { this.grains_average += ym.getGrains_yield(); grainsCount++; }
+							if(ym.getGlobal_yield() != null) { this.global_average += ym.getGlobal_yield(); globalCount++; }
+							if(ym.getDefects_1() != null) { this.defects_average_1 += ym.getDefects_1(); defects1Count++; }
+							if(ym.getDefects_2() != null) { this.defects_average_2 += ym.getDefects_2(); defects2Count++; }
 						}
-						
-						this.grains_average = this.grains_average / (double)this.measures.size();
-						this.global_average = this.global_average / (double)this.measures.size();
-						this.defects_average_1 = this.defects_average_1 / (double)this.measures.size();
-						this.defects_average_2 = this.defects_average_2 / (double)this.measures.size();
+						if(grainsCount > 0) this.grains_average /= grainsCount;
+						if(globalCount > 0) this.global_average /= globalCount;
+						if(defects1Count > 0) this.defects_average_1 /= defects1Count;
+						if(defects2Count > 0) this.defects_average_2 /= defects2Count;
 					}
 				} catch(Exception ex) {
 					if(ContextSupport.isDebug()) {
@@ -219,6 +191,16 @@ public class SamplesMeasuresList extends MyActionSupport implements MyActionInte
 		
 		return result;
 		
+	}
+
+	private Date fineGiornata(Date data) {
+		Calendar c = Calendar.getInstance();
+		c.setTime(data);
+		c.set(Calendar.HOUR_OF_DAY, 23);
+		c.set(Calendar.MINUTE, 59);
+		c.set(Calendar.SECOND, 59);
+		c.set(Calendar.MILLISECOND, 999);
+		return c.getTime();
 	}
 
 }
