@@ -77,8 +77,9 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 
 				Image img1 = PdfLogoSupport.logoImage(PdfLogoSupport.contractLogoPath(sale));
 
-				PdfPTable table = new PdfPTable(PdfLogoSupport.usesNewContractLogo(sale)
-						? new float[] { 2,3,1 } : new float[] { 1,4,1 });
+				// Mantiene per ogni logo lo stesso ingombro storico dell'intestazione:
+				// logo Ghisoni e logo RiceUp occupano colonne della stessa larghezza.
+				PdfPTable table = new PdfPTable(new float[] { 1,4,1 });
 				table.setTotalWidth(530);
 				table.setLockedWidth(true);
 

@@ -31,10 +31,6 @@ public final class PdfLogoSupport {
 		return resourcePath(safeFileName(logo));
 	}
 
-	public static boolean usesNewContractLogo(Sale sale) {
-		return sale != null && NEW_GHISONI_LOGO.equals(safeFileName(sale.getContractLogo()));
-	}
-
 	public static PdfPCell currentLogoCell(float maxWidth, float maxHeight) {
 		PdfPCell cell = emptyLogoCell();
 		try {
