@@ -127,9 +127,9 @@
 						<label class="mr-1 mb-2" for="label_global_average">Resa globale:</label>
 						<s:textfield name="label_global_average" value="%{global_average}" cssClass="form-control form-control-sm mr-3 mb-2 numeric" />
 						<label class="mr-1 mb-2" for="label_defects_average_1">Difetti 1:</label>
-						<s:textfield name="label_defects_average_1" value="%{defects_average_1}" cssClass="form-control form-control-sm mr-3 mb-2 numeric" />
+						<s:textfield name="label_defects_average_1" value="%{defects_average_1}" cssClass="form-control form-control-sm mr-3 mb-2" />
 						<label class="mr-1 mb-2" for="label_defects_average_2">Difetti 2:</label>
-						<s:textfield name="label_defects_average_2" value="%{defects_average_2}" cssClass="form-control form-control-sm mr-3 mb-2 numeric" />
+						<s:textfield name="label_defects_average_2" value="%{defects_average_2}" cssClass="form-control form-control-sm mr-3 mb-2" />
 						<label class="mr-1 mb-2" for="label_date">Data:</label>
 						<sj:datepicker name="label_date" value="%{label_date}" displayFormat="d/m/y" cssClass="form-control form-control-sm mr-3 mb-2" />
 						<button type="submit" class="btn btn-secondary btn-sm no-loader mb-2"><i class="fas fa-print"></i> Stampa etichetta 10x15</button>
