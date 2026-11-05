@@ -27,21 +27,25 @@ public final class LabelPdfBuilder {
 
 	private LabelPdfBuilder() { }
 
-	public static byte[] sampleLabel(Customer customer, Product product, String average, Date date, String logoPath) throws Exception {
+	public static byte[] sampleLabel(Customer customer, Product product, String grainsAverage, String globalAverage,
+			String defectsAverage1, String defectsAverage2, Date date, String logoPath) throws Exception {
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		Document document = new Document(LABEL_10X15, 14f, 14f, 14f, 14f);
 		PdfWriter.getInstance(document, output);
 		document.open();
 		addHeader(document, "CAMPIONE", logoPath);
-		Font label = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10f);
-		Font value = FontFactory.getFont(FontFactory.HELVETICA, 12f);
+		Font label = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8.5f);
+		Font value = FontFactory.getFont(FontFactory.HELVETICA, 10.5f);
 		PdfPTable table = new PdfPTable(1);
 		table.setWidthPercentage(100f);
-		table.setSpacingBefore(18f);
-		addBlock(table, "AGRICOLTORE", customer == null ? "" : clean(customer.getBusiness_name()), label, value);
-		addBlock(table, "PRODOTTO", product == null ? "" : clean(product.getName()), label, value);
-		addBlock(table, "MEDIA RESA GRANI", clean(average), label, value);
-		addBlock(table, "DATA", date == null ? "" : new SimpleDateFormat("dd/MM/yyyy").format(date), label, value);
+		table.setSpacingBefore(8f);
+		addCompactBlock(table, "AGRICOLTORE", customer == null ? "" : clean(customer.getBusiness_name()), label, value);
+		addCompactBlock(table, "PRODOTTO", product == null ? "" : clean(product.getName()), label, value);
+		addCompactBlock(table, "MEDIA RESA GRANI", clean(grainsAverage), label, value);
+		addCompactBlock(table, "MEDIA RESA GLOBALE", clean(globalAverage), label, value);
+		addCompactBlock(table, "MEDIA DIFETTI 1", clean(defectsAverage1), label, value);
+		addCompactBlock(table, "MEDIA DIFETTI 2", clean(defectsAverage2), label, value);
+		addCompactBlock(table, "DATA", date == null ? "" : new SimpleDateFormat("dd/MM/yyyy").format(date), label, value);
 		document.add(table);
 		document.close();
 		return output.toByteArray();

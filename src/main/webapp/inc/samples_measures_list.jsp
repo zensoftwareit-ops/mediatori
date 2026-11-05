@@ -115,22 +115,33 @@
 				<td></td>
 			</tr>
 
-			<s:if test="%{id_customer != null && id_product != null}">
 			<tr class="table-secondary">
 				<td colspan="12">
+					<div class="font-weight-bold mb-2"><i class="fas fa-tag"></i> Etichetta campione 10x15</div>
+					<s:if test="%{id_customer != null && id_product != null}">
 					<s:form action="samples_measures/label" method="post" theme="simple" cssClass="form-inline" target="_blank">
 						<s:hidden name="id_customer" value="%{id_customer}" />
 						<s:hidden name="id_product" value="%{id_product}" />
-						<label class="font-weight-bold mr-2">Etichetta campione</label>
-						<label class="mr-1" for="label_average">Media resa grani:</label>
-						<s:textfield name="label_average" value="%{grains_average}" cssClass="form-control form-control-sm mr-2 numeric" />
-						<label class="mr-1" for="label_date">Data:</label>
-						<sj:datepicker name="label_date" value="%{label_date}" displayFormat="d/m/y" cssClass="form-control form-control-sm mr-2" />
-						<button type="submit" class="btn btn-secondary btn-sm no-loader"><i class="fas fa-print"></i> Stampa etichetta 10x15</button>
+						<label class="mr-1 mb-2" for="label_average">Resa grani:</label>
+						<s:textfield name="label_average" value="%{grains_average}" cssClass="form-control form-control-sm mr-3 mb-2 numeric" />
+						<label class="mr-1 mb-2" for="label_global_average">Resa globale:</label>
+						<s:textfield name="label_global_average" value="%{global_average}" cssClass="form-control form-control-sm mr-3 mb-2 numeric" />
+						<label class="mr-1 mb-2" for="label_defects_average_1">Difetti 1:</label>
+						<s:textfield name="label_defects_average_1" value="%{defects_average_1}" cssClass="form-control form-control-sm mr-3 mb-2 numeric" />
+						<label class="mr-1 mb-2" for="label_defects_average_2">Difetti 2:</label>
+						<s:textfield name="label_defects_average_2" value="%{defects_average_2}" cssClass="form-control form-control-sm mr-3 mb-2 numeric" />
+						<label class="mr-1 mb-2" for="label_date">Data:</label>
+						<sj:datepicker name="label_date" value="%{label_date}" displayFormat="d/m/y" cssClass="form-control form-control-sm mr-3 mb-2" />
+						<button type="submit" class="btn btn-secondary btn-sm no-loader mb-2"><i class="fas fa-print"></i> Stampa etichetta 10x15</button>
 					</s:form>
+					</s:if>
+					<s:else>
+						<div class="alert alert-info py-2 px-3 mb-0">
+							Seleziona un cliente e un prodotto nei filtri sopra, quindi premi il pulsante di ricerca per compilare e stampare l'etichetta.
+						</div>
+					</s:else>
 				</td>
 			</tr>
-			</s:if>
 
 		</tbody>
 	</table>

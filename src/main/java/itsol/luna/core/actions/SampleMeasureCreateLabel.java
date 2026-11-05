@@ -20,9 +20,18 @@ import itsol.luna.core.utils.PdfLogoSupport;
 public class SampleMeasureCreateLabel extends MyActionSupport implements MyActionInterface {
 	private static final long serialVersionUID = -3174090430662858720L;
 	private String label_average;
+	private String label_global_average;
+	private String label_defects_average_1;
+	private String label_defects_average_2;
 	private Date label_date;
 	public String getLabel_average() { return label_average; }
 	public void setLabel_average(String label_average) { this.label_average = label_average; }
+	public String getLabel_global_average() { return label_global_average; }
+	public void setLabel_global_average(String label_global_average) { this.label_global_average = label_global_average; }
+	public String getLabel_defects_average_1() { return label_defects_average_1; }
+	public void setLabel_defects_average_1(String label_defects_average_1) { this.label_defects_average_1 = label_defects_average_1; }
+	public String getLabel_defects_average_2() { return label_defects_average_2; }
+	public void setLabel_defects_average_2(String label_defects_average_2) { this.label_defects_average_2 = label_defects_average_2; }
 	public Date getLabel_date() { return label_date; }
 	public void setLabel_date(Date label_date) { this.label_date = label_date; }
 
@@ -40,7 +49,9 @@ public class SampleMeasureCreateLabel extends MyActionSupport implements MyActio
 				return null;
 			}
 			String logoPath = PdfLogoSupport.currentLogoPath();
-			byte[] pdf = LabelPdfBuilder.sampleLabel(customer, product, label_average, label_date == null ? new Date() : label_date, logoPath);
+			byte[] pdf = LabelPdfBuilder.sampleLabel(customer, product, label_average, label_global_average,
+					label_defects_average_1, label_defects_average_2,
+					label_date == null ? new Date() : label_date, logoPath);
 			writePdf(pdf, "Etichetta-campione.pdf");
 			LogSupport.log(op() + "E' stata generata l'etichetta aggregata del campione.", Level.INFO);
 		} catch(Exception ex) {
