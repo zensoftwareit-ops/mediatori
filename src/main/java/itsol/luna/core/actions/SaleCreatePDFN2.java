@@ -110,9 +110,11 @@ public class SaleCreatePDFN2 extends MyActionSupport implements MyActionInterfac
 				
 				Path path2 = Paths.get(ServletActionContext.getServletContext().getResource("/images/riceup2.png").toURI());
 				Image img2 = Image.getInstance(path2.toAbsolutePath().toString());
+				img2.scaleToFit(80f, 40f);
 				
-				PdfPCell cell3 = new PdfPCell(img2, true);
-				cell3.setHorizontalAlignment(Element.ALIGN_LEFT);
+				PdfPCell cell3 = new PdfPCell(img2, false);
+				cell3.setHorizontalAlignment(Element.ALIGN_CENTER);
+				cell3.setVerticalAlignment(Element.ALIGN_MIDDLE);
 				//cell3.setFixedHeight(110);
 				cell3.setPaddingBottom(5);
 				cell3.setPaddingTop(10);
