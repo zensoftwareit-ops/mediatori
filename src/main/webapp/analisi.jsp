@@ -89,7 +89,12 @@
 							</button>
 						</s:form>
 					</div>
-					<small class="text-muted">I dati mostrati appartengono all'annata di semina selezionata.</small>
+					<s:if test="%{date_from != null || date_to != null}">
+						<small class="text-muted">Il filtro per data cerca in tutte le annate di semina.</small>
+					</s:if>
+					<s:else>
+						<small class="text-muted">Senza un filtro per data, i dati mostrati appartengono all'annata di semina selezionata.</small>
+					</s:else>
 				</div>
 
 				<div class="card shadow-sm mb-1">

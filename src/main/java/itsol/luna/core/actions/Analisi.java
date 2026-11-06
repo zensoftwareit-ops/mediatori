@@ -82,13 +82,19 @@ public List<String> getComuni() {
 	Session sx = HibernateUtil.getSessionFactory().openSession();
 	try {
 		String q = "SELECT DISTINCT c.legal_city FROM Analisi a INNER JOIN a.cliente c "
-				+ "WHERE c.legal_city IS NOT NULL AND TRIM(c.legal_city) <> '' AND a.year.id = :id_sowing_year";
+				+ "WHERE c.legal_city IS NOT NULL AND TRIM(c.legal_city) <> ''";
+		boolean filtraAnnata = getDate_from() == null && getDate_to() == null;
+		if(filtraAnnata) {
+			q += " AND a.year.id = :id_sowing_year";
+		}
 		if(!SessionSupport.checkSessionLevel("admin|super")) {
 			q += " AND a.id_admin = :id_admin";
 		}
 		q += " ORDER BY c.legal_city";
 		org.hibernate.Query query = sx.createQuery(q);
-		query.setParameter("id_sowing_year", SessionSupport.getSowingYear().getId());
+		if(filtraAnnata) {
+			query.setParameter("id_sowing_year", SessionSupport.getSowingYear().getId());
+		}
 		if(!SessionSupport.checkSessionLevel("admin|super")) {
 			query.setParameter("id_admin", SessionSupport.getAdmin().getId());
 		}

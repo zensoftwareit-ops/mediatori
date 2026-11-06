@@ -249,7 +249,9 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 	private List<Analisi> eseguiQuery(Session sx, boolean applicaFiltroFuoriLimite) {
 		List<String> comuniFiltro = getComuniFiltro();
 		List<String> gruppiFiltro = getGruppiFiltro();
-		String q = "SELECT a FROM Analisi a INNER JOIN a.cliente c INNER JOIN a.prodotto p WHERE a.year.id = :id_sowing_year";
+		boolean filtraAnnata = getDate_from() == null && getDate_to() == null;
+		String q = "SELECT a FROM Analisi a INNER JOIN a.cliente c INNER JOIN a.prodotto p WHERE 1 = 1";
+		if(filtraAnnata) q += " AND a.year.id = :id_sowing_year";
 		boolean filtraAdmin = !SessionSupport.checkSessionLevel("admin|super");
 		if(filtraAdmin) q += " AND a.id_admin = :id_admin";
 		if(getId_customer() != null) q += " AND c.id = :id_customer";
@@ -269,7 +271,7 @@ public class AnalisiCreatePDF extends MyActionSupport implements MyActionInterfa
 		if(applicaFiltroFuoriLimite) q += clausolaFuoriLimite();
 		q += " ORDER BY UPPER(c.business_name) ASC, a.dataAnalisi ASC, a.id ASC";
 		Query query = sx.createQuery(q);
-		query.setParameter("id_sowing_year", SessionSupport.getSowingYear().getId());
+		if(filtraAnnata) query.setParameter("id_sowing_year", SessionSupport.getSowingYear().getId());
 		if(filtraAdmin) query.setParameter("id_admin", SessionSupport.getAdmin().getId());
 		if(getId_customer() != null) query.setParameter("id_customer", getId_customer());
 		if(getId_product() != null) query.setParameter("id_product", getId_product());
