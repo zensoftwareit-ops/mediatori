@@ -102,7 +102,7 @@ public class AnalisiList extends MyActionSupport implements MyActionInterface {
 			q += " AND (";
 			for(int i = 0; i < gruppiFiltro.size(); i++) {
 				if(i > 0) q += " OR ";
-				q += "UPPER(p.groups) LIKE :gruppo" + i;
+				q += "(UPPER(p.groups) LIKE :gruppo" + i + " OR UPPER(p.groups2) LIKE :gruppo" + i + ")";
 			}
 			q += ")";
 		}

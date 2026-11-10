@@ -41,6 +41,9 @@
 		<property name="groups" type="java.lang.String">
 			<column name="groups" />
 		</property>
+		<property name="groups2" type="java.lang.String">
+			<column name="groups2" />
+		</property>
 		<many-to-one name="admin"
 			class="itsol.luna.core.beans.Admin" fetch="select" lazy="false">
 			<column name="id_admin" />

@@ -140,6 +140,15 @@ public class ProductSave extends MyActionSupport implements MyActionInterface {
 		if(this.product.getDescription().length() == 0) {
 			this.product.setDescription(null);
 		}
+
+		if(this.product.getGroups2() != null && this.product.getGroups2().trim().length() == 0) {
+			this.product.setGroups2(null);
+		}
+
+		if(this.product.getGroups() != null && this.product.getGroups2() != null
+				&& this.product.getGroups().equalsIgnoreCase(this.product.getGroups2())) {
+			addFieldError("product.groups2", "Il secondo gruppo deve essere diverso dal primo.");
+		}
 		
 		if(this.product.getBuyer_commission() == null) {
 			addFieldError("product.buyer_commission", "Campo obbligatorio.");

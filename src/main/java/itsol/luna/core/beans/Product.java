@@ -22,6 +22,7 @@ public class Product implements Serializable {
 	private Double buyer_commission;
 	private Double seller_commission;
 	private String groups;
+	private String groups2;
 	private String contract_template;
 
 	public Product() {
@@ -122,6 +123,14 @@ public class Product implements Serializable {
 
 	public void setGroups(String groups) {
 		this.groups = groups;
+	}
+
+	public String getGroups2() {
+		return groups2;
+	}
+
+	public void setGroups2(String groups2) {
+		this.groups2 = groups2;
 	}
 
 	public String getContract_template() {

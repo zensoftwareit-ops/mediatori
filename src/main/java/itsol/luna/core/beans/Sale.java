@@ -544,7 +544,7 @@ public class Sale implements Serializable {
 			if(id_product != null) {
 				q += " AND pr.id = " + id_product;
 			} else if(group != null) {
-				q += " AND pr.groups LIKE '" + group + "%'";
+				q += " AND (pr.groups LIKE '" + group + "%' OR pr.groups2 LIKE '" + group + "%')";
 			}
 			if(id_customer != null) {
 				q += " AND c.id = " + id_customer;

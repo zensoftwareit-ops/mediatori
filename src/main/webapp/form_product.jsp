@@ -77,6 +77,20 @@
 										</div>
 									</div>
 
+									<div class="form-row">
+										<div class="form-group col-12">
+											<small class="font-weight-bold"><s:label
+													for="product.groups2" value="Secondo gruppo merceologico"
+													cssClass="sr-only" /></small>
+											<s:select key="product.groups2" list="groups" listKey="tag" listValue="listName"
+												headerKey="" headerValue="Nessun secondo gruppo"
+												cssClass="form-control form-control-sm" />
+											<div>
+												<s:fielderror fieldName="product.groups2" />
+											</div>
+										</div>
+									</div>
+
 								</div>
 							</div>
 
