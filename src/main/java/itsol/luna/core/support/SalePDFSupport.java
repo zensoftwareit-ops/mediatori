@@ -16,6 +16,9 @@ import org.apache.struts2.ServletActionContext;
 import com.itextpdf.forms.PdfAcroForm;
 import com.itextpdf.forms.fields.PdfFormField;
 import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.io.image.ImageData;
+import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.pdf.PdfPage;
@@ -32,6 +35,7 @@ public class SalePDFSupport {
 
 	private static final String RISO_GALLO_VAT = "01407630183";
 	private static final String RISO_GALLO_TEMPLATE = "/WEB-INF/templates/contratto_riso_gallo_2026.pdf";
+	private static final String MEDIATOR_SIGNATURE = "/images/firma_ghisoni.jpg";
 
 	/**
 	 * Il contratto Riso Gallo e' globale e prevale sul modello scelto nella vendita.
@@ -57,7 +61,7 @@ public class SalePDFSupport {
 			if(src == null) {
 				throw new IllegalStateException("Modello contratto Riso Gallo non trovato: " + RISO_GALLO_TEMPLATE);
 			}
-			writeRisoGallo(src, out, sale);
+			writeRisoGallo(src, out, sale, mediatorSignature());
 		} catch(Exception ex) {
 			logPdfError(ex);
 		}
@@ -67,11 +71,19 @@ public class SalePDFSupport {
 	/** Metodo separato usato anche dal test di impaginazione. */
 	public static void createRisoGalloFromTemplate(String template, String destination, Sale sale) throws Exception {
 		try(InputStream src = new FileInputStream(template); OutputStream out = new FileOutputStream(destination)) {
-			writeRisoGallo(src, out, sale);
+			writeRisoGallo(src, out, sale, null);
 		}
 	}
 
-	private static void writeRisoGallo(InputStream source, OutputStream destination, Sale sale) throws Exception {
+	/** Variante usata dalla verifica visuale del modello statico. */
+	public static void createRisoGalloFromTemplate(String template, String destination, String signature, Sale sale) throws Exception {
+		try(InputStream src = new FileInputStream(template); OutputStream out = new FileOutputStream(destination);
+			InputStream signatureStream = new FileInputStream(signature)) {
+			writeRisoGallo(src, out, sale, signatureStream.readAllBytes());
+		}
+	}
+
+	private static void writeRisoGallo(InputStream source, OutputStream destination, Sale sale, byte[] mediatorSignature) throws Exception {
 		PdfDocument pdfDoc = new PdfDocument(new PdfReader(source), new PdfWriter(destination));
 		try {
 			PdfPage page = pdfDoc.getPage(1);
@@ -164,6 +176,11 @@ public class SalePDFSupport {
 				text(canvas, regular, signature, 412, 174, 126, 6.5f);
 				text(canvas, regular, signature, 412, 27, 126, 6.5f);
 			}
+			if(mediatorSignature != null && mediatorSignature.length > 0) {
+				ImageData signature = ImageDataFactory.create(mediatorSignature);
+				canvas.addImage(signature, new Rectangle(248, 171, 100, 16), false);
+				canvas.addImage(signature, new Rectangle(248, 20, 100, 16), false);
+			}
 		} finally {
 			pdfDoc.close();
 		}
@@ -241,6 +258,14 @@ public class SalePDFSupport {
 
 	private static String onlyDigits(String value) {
 		return safe(value).replaceAll("[^0-9]", "");
+	}
+
+	private static byte[] mediatorSignature() {
+		try(InputStream signature = ServletActionContext.getServletContext().getResourceAsStream(MEDIATOR_SIGNATURE)) {
+			return signature == null ? null : signature.readAllBytes();
+		} catch(Exception ignored) {
+			return null;
+		}
 	}
 
 	private static void logPdfError(Exception ex) {
