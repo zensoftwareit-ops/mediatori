@@ -1,23 +1,234 @@
 package itsol.luna.core.support;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.struts2.ServletActionContext;
 
 import com.itextpdf.forms.PdfAcroForm;
 import com.itextpdf.forms.fields.PdfFormField;
+import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 
 
 import itsol.luna.core.beans.Sale;
 import itsol.luna.core.beans.SaleProduct;
 
 public class SalePDFSupport {
+
+	private static final String RISO_GALLO_VAT = "01407630183";
+	private static final String RISO_GALLO_TEMPLATE = "/WEB-INF/templates/contratto_riso_gallo_2026.pdf";
+
+	/**
+	 * Il contratto Riso Gallo e' globale e prevale sul modello scelto nella vendita.
+	 * La P.IVA evita falsi positivi; la ragione sociale e' un fallback per le anagrafiche
+	 * storiche nelle quali la P.IVA non era stata compilata.
+	 */
+	public static boolean isRisoGallo(Sale sale) {
+		if(sale == null || sale.getBuyer() == null) {
+			return false;
+		}
+		String vat = onlyDigits(sale.getBuyer().getVat_number());
+		if(RISO_GALLO_VAT.equals(vat)) {
+			return true;
+		}
+		String name = safe(sale.getBuyer().getBusiness_name()).toUpperCase(Locale.ITALY).replaceAll("[^A-Z0-9]", "");
+		return name.contains("RISOGALLO");
+	}
+
+	public static String createRisoGallo(String filename, Sale sale) {
+		String dest = ContextSupport.getUploadPath() + filename;
+		try(InputStream src = ServletActionContext.getServletContext().getResourceAsStream(RISO_GALLO_TEMPLATE);
+			OutputStream out = new FileOutputStream(dest)) {
+			if(src == null) {
+				throw new IllegalStateException("Modello contratto Riso Gallo non trovato: " + RISO_GALLO_TEMPLATE);
+			}
+			writeRisoGallo(src, out, sale);
+		} catch(Exception ex) {
+			logPdfError(ex);
+		}
+		return filename;
+	}
+
+	/** Metodo separato usato anche dal test di impaginazione. */
+	public static void createRisoGalloFromTemplate(String template, String destination, Sale sale) throws Exception {
+		try(InputStream src = new FileInputStream(template); OutputStream out = new FileOutputStream(destination)) {
+			writeRisoGallo(src, out, sale);
+		}
+	}
+
+	private static void writeRisoGallo(InputStream source, OutputStream destination, Sale sale) throws Exception {
+		PdfDocument pdfDoc = new PdfDocument(new PdfReader(source), new PdfWriter(destination));
+		try {
+			PdfPage page = pdfDoc.getPage(1);
+			PdfCanvas canvas = new PdfCanvas(page);
+			PdfFont regular = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+			PdfFont bold = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
+			SaleProduct sp = sale.getProduct();
+
+			// Intestazione del contratto.
+			text(canvas, bold, value(sale.getNumber()), 84, 757, 50, 8);
+			text(canvas, regular, safe(sale.getSeller() == null ? null : sale.getSeller().getLegal_city()), 218, 757, 190, 8);
+			dateParts(canvas, regular, sale.getSale_date(), 458, 497, 531, 757);
+
+			// Venditore.
+			if(sale.getSeller() != null) {
+				text(canvas, bold, safe(sale.getSeller().getBusiness_name()), 96, 716, 225, 8);
+				text(canvas, regular, safe(sale.getSeller().getInternal_code()), 337, 716, 105, 7);
+				text(canvas, regular, phones(sale.getSeller().getPrimary_phone(), sale.getSeller().getSecondary_phone()), 472, 716, 90, 7);
+				text(canvas, regular, safe(sale.getSeller().getLegal_address()), 84, 698, 238, 8);
+				text(canvas, regular, phones(sale.getSeller().getPrimary_phone(), sale.getSeller().getSecondary_phone()), 472, 698, 90, 7);
+				text(canvas, regular, safe(sale.getSeller().getLegal_city()), 83, 680, 180, 8);
+				text(canvas, regular, safe(sale.getSeller().getLegal_province()), 310, 680, 20, 8);
+				String fiscal = firstNonBlank(sale.getSeller().getTax_code(), sale.getSeller().getVat_number());
+				text(canvas, regular, safe(fiscal), 390, 680, 165, 8);
+				text(canvas, regular, safe(sale.getSeller().getPrimary_email()), 84, 662, 130, 7);
+			}
+
+			// Luogo di ritiro, solo se richiesto nella vendita.
+			if(!"NO".equalsIgnoreCase(safe(sale.getPickup_printing()))) {
+				text(canvas, regular, safe(sale.getPickup_place()), 145, 644, 176, 7);
+				text(canvas, regular, safe(sale.getPickup_phone()), 472, 644, 90, 7);
+				text(canvas, regular, safe(sale.getPickup_address()), 84, 626, 238, 8);
+				text(canvas, regular, safe(sale.getPickup_phone()), 472, 626, 90, 7);
+				text(canvas, regular, safe(sale.getPickup_city()), 83, 608, 180, 8);
+				text(canvas, regular, safe(sale.getPickup_province()), 310, 608, 20, 8);
+			}
+
+			// Mediatore: le anagrafiche Admin contengono nome e cognome.
+			if(sale.getAdmin() != null) {
+				text(canvas, bold, safe(sale.getAdmin().getFull_name()), 96, 507, 225, 8);
+			}
+
+			// Merce e caratteristiche qualitative.
+			if(sp != null) {
+				text(canvas, bold, safe(sp.getName()), 107, 460, 155, 8);
+				text(canvas, bold, number(sp.getProduct_amount()), 357, 460, 83, 8);
+				text(canvas, bold, value(sp.getGrains_yield()), 464, 460, 42, 8);
+				text(canvas, bold, value(sp.getGlobal_yield()), 529, 460, 42, 8);
+				dateParts(canvas, regular, sale.getSale_date(), 452, 487, 519, 446);
+
+				text(canvas, regular, safe(sp.getHumidity()), 111, 409, 32, 8);
+				text(canvas, regular, value(sp.getD_red_grains()), 270, 409, 35, 8);
+				text(canvas, regular, value(sp.getD_damaged_grains()), 111, 395, 32, 8);
+				text(canvas, regular, safe(sp.getD_malformations()), 270, 395, 35, 8);
+				text(canvas, regular, safe(sp.getD_pinstriped_grains()), 111, 381, 32, 8);
+				text(canvas, regular, safe(sp.getD_impurity()), 270, 381, 35, 8);
+				text(canvas, regular, safe(sp.getQuality()), 94, 372, 185, 7);
+
+				String price = !safe(sale.getAlt_list()).isEmpty() ? safe(sale.getAlt_list()) : number(sp.getAmount());
+				text(canvas, bold, price, 123, 328, 142, 9);
+				if("iva".equalsIgnoreCase(safe(sp.getAmount_type()))) {
+					mark(canvas, 290, 346);
+				} else {
+					mark(canvas, 290, 324);
+				}
+			}
+
+			text(canvas, bold, safe(sale.getMediation()), 123, 301, 142, 8);
+			text(canvas, regular, paymentDates(sale), 438, 312, 126, 7);
+			text(canvas, regular, safe(sale.getPickup_time()), 414, 274, 150, 8);
+			if("SI".equalsIgnoreCase(safe(sale.getCarico_motrici()))) {
+				mark(canvas, 463, 239);
+			}
+			if("SI".equalsIgnoreCase(safe(sale.getCarico_al_coperto()))) {
+				mark(canvas, 553, 239);
+			}
+			text(canvas, regular, safe(sale.getParticular_conditions()), 34, 91, 525, 6.5f);
+		} finally {
+			pdfDoc.close();
+		}
+	}
+
+	private static void text(PdfCanvas canvas, PdfFont font, String text, float x, float y, float maxWidth, float size) {
+		text = safe(text).replace('\n', ' ').replace('\r', ' ').trim();
+		if(text.isEmpty()) return;
+		float current = size;
+		while(current > 5.2f && font.getWidth(text, current) > maxWidth) current -= 0.2f;
+		while(text.length() > 1 && font.getWidth(text, current) > maxWidth) text = text.substring(0, text.length() - 1);
+		canvas.beginText().setFontAndSize(font, current).moveText(x, y).showText(text).endText();
+	}
+
+	private static void mark(PdfCanvas canvas, float x, float y) throws Exception {
+		text(canvas, PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD), "X", x, y, 10, 10);
+	}
+
+	private static void dateParts(PdfCanvas canvas, PdfFont font, java.util.Date value,
+			float dayX, float monthX, float yearX, float y) {
+		if(value == null) return;
+		String[] parts = new SimpleDateFormat("dd/MM/yyyy").format(value).split("/");
+		text(canvas, font, parts[0], dayX, y, 18, 8);
+		text(canvas, font, parts[1], monthX, y, 18, 8);
+		text(canvas, font, parts[2], yearX, y, 30, 8);
+	}
+
+	private static String paymentDates(Sale sale) {
+		StringBuilder result = new StringBuilder();
+		if(sale.getInstallments() != null) {
+			for(int i = 0; i < sale.getInstallments().size(); i++) {
+				if(sale.getInstallments().get(i).getExpire_date() != null) {
+					if(result.length() > 0) result.append(" - ");
+					result.append(date(sale.getInstallments().get(i).getExpire_date()));
+				}
+			}
+		}
+		if(result.length() == 0 && sale.getPayment() != null) result.append(safe(sale.getPayment().getDescription()));
+		return result.toString();
+	}
+
+	private static String phones(String first, String second) {
+		if(safe(first).isEmpty()) return safe(second);
+		if(safe(second).isEmpty()) return safe(first);
+		return safe(first) + " / " + safe(second);
+	}
+
+	private static String firstNonBlank(String first, String second) {
+		return !safe(first).isEmpty() ? first : second;
+	}
+
+	private static String number(Number number) {
+		if(number == null) return "";
+		NumberFormat format = NumberFormat.getNumberInstance(Locale.ITALY);
+		format.setMaximumFractionDigits(3);
+		format.setMinimumFractionDigits(0);
+		return format.format(number);
+	}
+
+	private static String value(Object value) {
+		return value == null ? "" : value.toString();
+	}
+
+	private static String date(java.util.Date date) {
+		return date == null ? "" : new SimpleDateFormat("dd/MM/yyyy").format(date);
+	}
+
+	private static String safe(String value) {
+		return value == null ? "" : value.trim();
+	}
+
+	private static String onlyDigits(String value) {
+		return safe(value).replaceAll("[^0-9]", "");
+	}
+
+	private static void logPdfError(Exception ex) {
+		if(ContextSupport.isDebug()) ex.printStackTrace();
+		LogSupport.log(ExceptionUtils.getMessage(ex), Level.INFO);
+		LogSupport.log(ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex), Level.SEVERE);
+	}
 
 	
 	/**
@@ -27,6 +238,7 @@ public class SalePDFSupport {
 	 * contratto_forte_03.pdf
 	 */
 	public static String create1(String filename, Sale sale) {
+		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
 		
 		try {
 			String src = ContextSupport.getUploadPath() + sale.getContract_template().getFilename();	
@@ -361,6 +573,7 @@ public class SalePDFSupport {
 	}
 	
 	public static String create2(String filename, Sale sale) {
+		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
 		
 	
 		try {
@@ -912,6 +1125,7 @@ public class SalePDFSupport {
 	
 	// CURTI
 	public static String create3(String filename, Sale sale) {
+		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
 		
 		
 		try {
@@ -1434,6 +1648,7 @@ public class SalePDFSupport {
 	
 	
 	public static String create5(String filename, Sale sale) {
+		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
 		
 		
 		try {
@@ -1957,6 +2172,7 @@ public class SalePDFSupport {
 	
 	
 	public static String create4(String filename, Sale sale) {
+		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
 		
 		try {
 			String src = ContextSupport.getUploadPath() + sale.getContract_template().getFilename();	

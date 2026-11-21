@@ -2,6 +2,7 @@ package itsol.luna.core.actions;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.NumberFormat;
@@ -31,6 +32,7 @@ import itsol.luna.core.support.ContextSupport;
 import itsol.luna.core.support.LogSupport;
 import itsol.luna.core.support.MyActionSupport;
 import itsol.luna.core.support.SessionSupport;
+import itsol.luna.core.support.SalePDFSupport;
 import itsol.luna.core.utils.HibernateUtil;
 import itsol.luna.core.utils.PdfLogoSupport;
 
@@ -158,6 +160,19 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 
 					String filename = "00" + this.sale.getNumber().toString() + " - " + this.sale.getSeller().getBusiness_name() + " - " + this.sale.getBuyer().getBusiness_name() + " - " + new SimpleDateFormat("dd-MM-yyyy").format(this.sale.getSale_date()) + ".pdf";
 					filename = filename.replaceAll("'", "");
+
+					if(SalePDFSupport.isRisoGallo(this.sale)) {
+						SalePDFSupport.createRisoGallo(filename, this.sale);
+						byte[] pdf = Files.readAllBytes(Paths.get(ContextSupport.getUploadPath(), filename));
+						ContextSupport.getResponse().setContentType("application/pdf");
+						ContextSupport.getResponse().addHeader("Content-Disposition", "attachment; filename=" + filename);
+						ContextSupport.getResponse().setContentLength(pdf.length);
+						OutputStream os = ContextSupport.getResponse().getOutputStream();
+						os.write(pdf);
+						os.flush();
+						os.close();
+						return null;
+					}
 						
 					//------------------------------ preparo documento 
 					document = new Document();
