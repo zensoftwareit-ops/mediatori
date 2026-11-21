@@ -35,7 +35,10 @@ public class SalePDFSupport {
 
 	private static final String RISO_GALLO_VAT = "01407630183";
 	private static final String RISO_GALLO_TEMPLATE = "/WEB-INF/templates/contratto_riso_gallo_2026.pdf";
-	private static final String MEDIATOR_SIGNATURE = "/images/firma_ghisoni.jpg";
+	private static final long GHISONI_ADMIN_ID = 2L;
+	private static final long FORTE_ADMIN_ID = 3L;
+	private static final String GHISONI_SIGNATURE = "/images/firma_ghisoni.jpg";
+	private static final String FORTE_SIGNATURE = "/images/firma_forte.png";
 
 	/**
 	 * Il contratto Riso Gallo e' globale e prevale sul modello scelto nella vendita.
@@ -61,7 +64,7 @@ public class SalePDFSupport {
 			if(src == null) {
 				throw new IllegalStateException("Modello contratto Riso Gallo non trovato: " + RISO_GALLO_TEMPLATE);
 			}
-			writeRisoGallo(src, out, sale, mediatorSignature());
+			writeRisoGallo(src, out, sale, mediatorSignature(sale));
 		} catch(Exception ex) {
 			logPdfError(ex);
 		}
@@ -178,8 +181,14 @@ public class SalePDFSupport {
 			}
 			if(mediatorSignature != null && mediatorSignature.length > 0) {
 				ImageData signature = ImageDataFactory.create(mediatorSignature);
-				canvas.addImage(signature, new Rectangle(248, 171, 100, 16), false);
-				canvas.addImage(signature, new Rectangle(248, 20, 100, 16), false);
+				if(isAdmin(sale, FORTE_ADMIN_ID)) {
+					// Nei contratti Forte storici firma, dicitura e riga sono un unico blocco.
+					canvas.addImage(signature, new Rectangle(235, 164, 126, 40), false);
+					canvas.addImage(signature, new Rectangle(235, 13, 126, 40), false);
+				} else {
+					canvas.addImage(signature, new Rectangle(248, 171, 100, 16), false);
+					canvas.addImage(signature, new Rectangle(248, 20, 100, 16), false);
+				}
 			}
 		} finally {
 			pdfDoc.close();
@@ -260,12 +269,25 @@ public class SalePDFSupport {
 		return safe(value).replaceAll("[^0-9]", "");
 	}
 
-	private static byte[] mediatorSignature() {
-		try(InputStream signature = ServletActionContext.getServletContext().getResourceAsStream(MEDIATOR_SIGNATURE)) {
+	private static byte[] mediatorSignature(Sale sale) {
+		String resource;
+		if(isAdmin(sale, GHISONI_ADMIN_ID)) {
+			resource = GHISONI_SIGNATURE;
+		} else if(isAdmin(sale, FORTE_ADMIN_ID)) {
+			resource = FORTE_SIGNATURE;
+		} else {
+			return null;
+		}
+		try(InputStream signature = ServletActionContext.getServletContext().getResourceAsStream(resource)) {
 			return signature == null ? null : signature.readAllBytes();
 		} catch(Exception ignored) {
 			return null;
 		}
+	}
+
+	private static boolean isAdmin(Sale sale, long id) {
+		return sale != null && sale.getAdmin() != null && sale.getAdmin().getId() != null
+				&& sale.getAdmin().getId().longValue() == id;
 	}
 
 	private static void logPdfError(Exception ex) {
