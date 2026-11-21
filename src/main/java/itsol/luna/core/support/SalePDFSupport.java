@@ -149,6 +149,21 @@ public class SalePDFSupport {
 				mark(canvas, 553, 239);
 			}
 			text(canvas, regular, safe(sale.getParticular_conditions()), 34, 91, 525, 6.5f);
+
+			// Le firme vengono mostrate solo dopo la verifica OTP, che imposta a SI
+			// i rispettivi flag signedSeller/signedBuyer e memorizza data e ora.
+			if("SI".equalsIgnoreCase(safe(sale.getSignedSeller())) && sale.getSignedSellerDate() != null
+					&& sale.getSeller() != null) {
+				String signature = "Firmato da " + sale.getSeller().getSigner() + " il " + dateTime(sale.getSignedSellerDate());
+				text(canvas, regular, signature, 57, 174, 126, 6.5f);
+				text(canvas, regular, signature, 57, 27, 126, 6.5f);
+			}
+			if("SI".equalsIgnoreCase(safe(sale.getSignedBuyer())) && sale.getSignedBuyerDate() != null
+					&& sale.getBuyer() != null) {
+				String signature = "Firmato da " + sale.getBuyer().getSigner() + " il " + dateTime(sale.getSignedBuyerDate());
+				text(canvas, regular, signature, 412, 174, 126, 6.5f);
+				text(canvas, regular, signature, 412, 27, 126, 6.5f);
+			}
 		} finally {
 			pdfDoc.close();
 		}
@@ -214,6 +229,10 @@ public class SalePDFSupport {
 
 	private static String date(java.util.Date date) {
 		return date == null ? "" : new SimpleDateFormat("dd/MM/yyyy").format(date);
+	}
+
+	private static String dateTime(java.util.Date date) {
+		return date == null ? "" : new SimpleDateFormat("dd/MM/yyyy HH:mm").format(date);
 	}
 
 	private static String safe(String value) {
