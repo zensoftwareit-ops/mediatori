@@ -162,8 +162,12 @@ public class SaleCreatePDFN2 extends MyActionSupport implements MyActionInterfac
 					String filename = "00" + this.sale.getNumber().toString() + " - " + this.sale.getSeller().getBusiness_name() + " - " + this.sale.getBuyer().getBusiness_name() + " - " + new SimpleDateFormat("dd-MM-yyyy").format(this.sale.getSale_date()) + ".pdf";
 					filename = filename.replaceAll("'", "");
 
-					if(SalePDFSupport.isRisoGallo(this.sale)) {
-						SalePDFSupport.createRisoGallo(filename, this.sale);
+					if(SalePDFSupport.isRisoGallo(this.sale) || SalePDFSupport.isMundiRiso(this.sale)) {
+						if(SalePDFSupport.isRisoGallo(this.sale)) {
+							SalePDFSupport.createRisoGallo(filename, this.sale);
+						} else {
+							SalePDFSupport.createMundiRiso(filename, this.sale);
+						}
 						byte[] pdf = Files.readAllBytes(Paths.get(ContextSupport.getUploadPath(), filename));
 						ContextSupport.getResponse().setContentType("application/pdf");
 						ContextSupport.getResponse().addHeader("Content-Disposition", "attachment; filename=" + filename);

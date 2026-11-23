@@ -36,6 +36,8 @@ public class SalePDFSupport {
 
 	private static final String RISO_GALLO_VAT = "01407630183";
 	private static final String RISO_GALLO_TEMPLATE = "/WEB-INF/templates/contratto_riso_gallo_2026.pdf";
+	private static final String MUNDI_RISO_VAT = "01818090027";
+	private static final String MUNDI_RISO_TEMPLATE = "/WEB-INF/templates/contratto_mundi_riso.pdf";
 	private static final long GHISONI_ADMIN_ID = 2L;
 	private static final long FORTE_ADMIN_ID = 3L;
 	private static final String GHISONI_SIGNATURE = "/images/firma_ghisoni.jpg";
@@ -58,6 +60,19 @@ public class SalePDFSupport {
 		return name.contains("RISOGALLO");
 	}
 
+	/** Il modello Mundi Riso e' globale per tutti gli utenti del gestionale. */
+	public static boolean isMundiRiso(Sale sale) {
+		if(sale == null || sale.getBuyer() == null) {
+			return false;
+		}
+		String vat = onlyDigits(sale.getBuyer().getVat_number());
+		if(MUNDI_RISO_VAT.equals(vat)) {
+			return true;
+		}
+		String name = safe(sale.getBuyer().getBusiness_name()).toUpperCase(Locale.ITALY).replaceAll("[^A-Z0-9]", "");
+		return name.contains("MUNDIRISO");
+	}
+
 	public static String createRisoGallo(String filename, Sale sale) {
 		String dest = ContextSupport.getUploadPath() + filename;
 		try(InputStream src = ServletActionContext.getServletContext().getResourceAsStream(RISO_GALLO_TEMPLATE);
@@ -70,6 +85,34 @@ public class SalePDFSupport {
 			logPdfError(ex);
 		}
 		return filename;
+	}
+
+	public static String createMundiRiso(String filename, Sale sale) {
+		String dest = ContextSupport.getUploadPath() + filename;
+		try(InputStream src = ServletActionContext.getServletContext().getResourceAsStream(MUNDI_RISO_TEMPLATE);
+			OutputStream out = new FileOutputStream(dest)) {
+			if(src == null) {
+				throw new IllegalStateException("Modello contratto Mundi Riso non trovato: " + MUNDI_RISO_TEMPLATE);
+			}
+			writeMundiRiso(src, out, sale, mediatorSignature(sale));
+		} catch(Exception ex) {
+			logPdfError(ex);
+		}
+		return filename;
+	}
+
+	/** Metodo separato usato dal test di impaginazione del modello Mundi. */
+	public static void createMundiRisoFromTemplate(String template, String destination, Sale sale) throws Exception {
+		try(InputStream src = new FileInputStream(template); OutputStream out = new FileOutputStream(destination)) {
+			writeMundiRiso(src, out, sale, null);
+		}
+	}
+
+	public static void createMundiRisoFromTemplate(String template, String destination, String signature, Sale sale) throws Exception {
+		try(InputStream src = new FileInputStream(template); OutputStream out = new FileOutputStream(destination);
+			InputStream signatureStream = new FileInputStream(signature)) {
+			writeMundiRiso(src, out, sale, signatureStream.readAllBytes());
+		}
 	}
 
 	/** Metodo separato usato anche dal test di impaginazione. */
@@ -213,6 +256,117 @@ public class SalePDFSupport {
 		}
 	}
 
+	private static void writeMundiRiso(InputStream source, OutputStream destination, Sale sale, byte[] mediatorSignature) throws Exception {
+		PdfDocument pdfDoc = new PdfDocument(new PdfReader(source), new PdfWriter(destination));
+		try {
+			PdfPage page = pdfDoc.getPage(1);
+			PdfCanvas canvas = new PdfCanvas(page);
+			PdfFont regular = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+			PdfFont bold = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
+			SaleProduct sp = sale.getProduct();
+
+			// Intestazione: numero e data seguono esattamente le caselle del modello.
+			boxedText(canvas, bold, value(sale.getNumber()), 89.55f, 12.55f, 5, 747, 8);
+			boxedDate(canvas, regular, sale.getSale_date(), 442.2f, 12.56f, 747, 8);
+
+			if(sale.getSeller() != null) {
+				text(canvas, bold, safe(sale.getSeller().getBusiness_name()), 30, 684, 245, 8);
+				boxedText(canvas, regular, safe(sale.getSeller().getInternal_code()), 292.1f, 12.48f, 12, 684, 7);
+				text(canvas, regular, safe(sale.getSeller().getPrimary_phone()), 445, 684, 116, 7);
+				text(canvas, regular, safe(sale.getSeller().getLegal_address()), 85, 666, 190, 8);
+				text(canvas, regular, safe(sale.getSeller().getSecondary_phone()), 445, 666, 116, 7);
+				boxedText(canvas, regular, safe(sale.getSeller().getLegal_zip_code()), 50.8f, 12.8f, 5, 649, 7);
+				text(canvas, regular, cityAndProvince(sale.getSeller().getLegal_city(), sale.getSeller().getLegal_province()), 166, 649, 160, 8);
+				boxedText(canvas, regular, taxIdentifier(sale.getSeller().getVat_number(), sale.getSeller().getTax_code()), 367.3f, 12.55f, 16, 649, 7);
+				text(canvas, regular, firstNonEmpty(sale.getSeller().getPec_email(), sale.getSeller().getPrimary_email()), 51, 631, 148, 7);
+			}
+
+			if(!"NO".equalsIgnoreCase(safe(sale.getPickup_printing()))) {
+				text(canvas, regular, safe(sale.getPickup_place()), 162, 607, 114, 7);
+				if(sale.getSeller() != null) {
+					boxedText(canvas, regular, safe(sale.getSeller().getInternal_code()), 291.7f, 12.55f, 12, 607, 7);
+				}
+				text(canvas, regular, safe(sale.getPickup_phone()), 445, 607, 116, 7);
+				text(canvas, regular, safe(sale.getPickup_address()), 85, 589, 190, 8);
+				text(canvas, regular, safe(sale.getPickup_phone()), 445, 589, 116, 7);
+				boxedText(canvas, regular, safe(sale.getPickup_zip_code()), 51.2f, 12.75f, 5, 572, 7);
+				text(canvas, regular, cityAndProvince(sale.getPickup_city(), sale.getPickup_province()), 166, 572, 160, 8);
+				if(sale.getSeller() != null) {
+					boxedText(canvas, regular, taxIdentifier(sale.getSeller().getVat_number(), sale.getSeller().getTax_code()), 367.3f, 12.55f, 16, 572, 7);
+				}
+			}
+
+			// L'anagrafica Mundi e' prestampata: l'identificativo fiscale viene
+			// comunque riscritto dalla vendita, con priorita' alla P. IVA.
+			whiteout(canvas, 329.5f, 505.6f, 238, 16.5f);
+			if(sale.getBuyer() != null) {
+				String buyerVat = safe(sale.getBuyer().getVat_number());
+				text(canvas, regular, buyerVat.isEmpty() ? "C.F." : "P. IVA", 336, 509, 28, 7);
+				boxedText(canvas, regular, taxIdentifier(buyerVat, sale.getBuyer().getTax_code()), 367.3f, 12.55f, 16, 509, 7);
+			}
+
+			if(sale.getAdmin() != null) {
+				text(canvas, bold, safe(sale.getAdmin().getFull_name()), 118, 468, 155, 8);
+			}
+
+			if(sp != null) {
+				text(canvas, bold, safe(sp.getName()), 147, 405, 165, 8);
+				boxedText(canvas, bold, integerNumber(sp.getProduct_amount()), 342.8f, 12.35f, 4, 405, 7);
+				boxedText(canvas, bold, value(sp.getGrains_yield()), 455.35f, 12.55f, 2, 405, 7);
+				boxedText(canvas, bold, value(sp.getGlobal_yield()), 543.55f, 12.55f, 2, 405, 7);
+				text(canvas, bold, safe(sp.getHarvest_year()), 280, 383, 33, 8);
+				boxedDate(canvas, regular, sale.getSale_date(), 442.5f, 12.55f, 383, 7);
+
+				boxedText(canvas, regular, safe(sp.getD_impurity()), 89.7f, 12.55f, 4, 346, 7);
+				boxedText(canvas, regular, value(sp.getD_red_grains()), 202.7f, 12.7f, 4, 346, 7);
+				boxedText(canvas, regular, value(sp.getD_damaged_grains()), 89.7f, 12.55f, 4, 328, 7);
+				boxedText(canvas, regular, safe(sp.getD_malformations()), 202.7f, 12.7f, 4, 328, 7);
+				boxedText(canvas, regular, safe(sp.getD_pinstriped_grains()), 89.7f, 12.55f, 4, 310, 7);
+
+				String price = !safe(sale.getAlt_list()).isEmpty() ? safe(sale.getAlt_list()) : number(sp.getAmount());
+				if(!boxedDecimal(canvas, bold, price, 250, 9)) {
+					text(canvas, bold, price, 102, 250, 160, 8);
+				}
+				if("iva".equalsIgnoreCase(safe(sp.getAmount_type()))) {
+					mark(canvas, 282, 267);
+				} else {
+					mark(canvas, 282, 243);
+				}
+			}
+
+			if(!boxedDecimal(canvas, bold, safe(sale.getMediation()), 215, 8)) {
+				text(canvas, bold, safe(sale.getMediation()), 102, 215, 160, 8);
+			}
+			text(canvas, regular, paymentDates(sale), 420, 255, 142, 7);
+			text(canvas, regular, safe(sale.getPickup_time()), 390, 214, 172, 7);
+
+			if("SI".equalsIgnoreCase(safe(sale.getSignedSeller())) && sale.getSignedSellerDate() != null
+					&& sale.getSeller() != null) {
+				String signature = "Firmato da " + sale.getSeller().getSigner() + " il " + dateTime(sale.getSignedSellerDate());
+				text(canvas, regular, signature, 38, 145, 145, 6.5f);
+				text(canvas, regular, signature, 65, 45, 112, 6.5f);
+			}
+			if("SI".equalsIgnoreCase(safe(sale.getSignedBuyer())) && sale.getSignedBuyerDate() != null
+					&& sale.getBuyer() != null) {
+				String signature = "Firmato da " + sale.getBuyer().getSigner() + " il " + dateTime(sale.getSignedBuyerDate());
+				text(canvas, regular, signature, 412, 145, 145, 6.5f);
+				text(canvas, regular, signature, 425, 45, 128, 6.5f);
+			}
+			if(mediatorSignature != null && mediatorSignature.length > 0) {
+				ImageData signature = ImageDataFactory.create(mediatorSignature);
+				if(isAdmin(sale, FORTE_ADMIN_ID)) {
+					canvas.addImage(signature, new Rectangle(235, 137, 126, 32), false);
+					canvas.addImage(signature, new Rectangle(235, 32, 126, 32), false);
+				} else {
+					canvas.addImage(signature, new Rectangle(248, 144, 100, 16), false);
+					canvas.addImage(signature, new Rectangle(248, 44, 100, 16), false);
+				}
+			}
+		} finally {
+			pdfDoc.close();
+		}
+	}
+
 	private static void text(PdfCanvas canvas, PdfFont font, String text, float x, float y, float maxWidth, float size) {
 		text = safe(text).replace('\n', ' ').replace('\r', ' ').trim();
 		if(text.isEmpty()) return;
@@ -232,6 +386,59 @@ public class SalePDFSupport {
 			float x = startX + (i * cellWidth) + Math.max(0, (cellWidth - width) / 2f);
 			text(canvas, font, character, x, y, cellWidth, size);
 		}
+	}
+
+	private static void boxedDate(PdfCanvas canvas, PdfFont font, java.util.Date value,
+			float startX, float cellWidth, float y, float size) {
+		if(value == null) return;
+		String digits = new SimpleDateFormat("ddMMyyyy").format(value);
+		int[] cells = {0, 1, 3, 4, 6, 7, 8, 9};
+		for(int i = 0; i < digits.length() && i < cells.length; i++) {
+			boxedCharacter(canvas, font, digits.substring(i, i + 1), startX + cells[i] * cellWidth, cellWidth, y, size);
+		}
+	}
+
+	private static boolean boxedDecimal(PdfCanvas canvas, PdfFont font, String value, float y, float size) {
+		String normalized = safe(value).replaceAll("[^0-9,.-]", "");
+		if(normalized.isEmpty()) return false;
+		int comma = normalized.lastIndexOf(',');
+		int dot = normalized.lastIndexOf('.');
+		int separator = Math.max(comma, dot);
+		String integerPart;
+		String decimals;
+		if(separator >= 0 && normalized.length() - separator - 1 <= 2) {
+			integerPart = normalized.substring(0, separator).replaceAll("[^0-9]", "");
+			decimals = normalized.substring(separator + 1).replaceAll("[^0-9]", "");
+		} else {
+			integerPart = normalized.replaceAll("[^0-9]", "");
+			decimals = "";
+		}
+		if(integerPart.isEmpty()) integerPart = "0";
+		while(decimals.length() < 2) decimals += "0";
+		if(decimals.length() > 2) decimals = decimals.substring(0, 2);
+		if(integerPart.length() > 4) integerPart = integerPart.substring(integerPart.length() - 4);
+
+		float[] integerCenters = {114.8f, 140.2f, 165.1f, 190.5f};
+		float[] decimalCenters = {228.2f, 253.2f};
+		int offset = integerCenters.length - integerPart.length();
+		for(int i = 0; i < integerPart.length(); i++) {
+			centeredCharacter(canvas, font, integerPart.substring(i, i + 1), integerCenters[offset + i], y, size);
+		}
+		for(int i = 0; i < 2; i++) {
+			centeredCharacter(canvas, font, decimals.substring(i, i + 1), decimalCenters[i], y, size);
+		}
+		return true;
+	}
+
+	private static void boxedCharacter(PdfCanvas canvas, PdfFont font, String character,
+			float cellX, float cellWidth, float y, float size) {
+		centeredCharacter(canvas, font, character, cellX + cellWidth / 2f, y, size);
+	}
+
+	private static void centeredCharacter(PdfCanvas canvas, PdfFont font, String character,
+			float centerX, float y, float size) {
+		float width = font.getWidth(character, size);
+		text(canvas, font, character, centerX - width / 2f, y, width + 1, size);
 	}
 
 	private static void whiteout(PdfCanvas canvas, float x, float y, float width, float height) {
@@ -277,6 +484,20 @@ public class SalePDFSupport {
 
 	private static String taxIdentifier(String vatNumber, String taxCode) {
 		return !safe(vatNumber).isEmpty() ? vatNumber : taxCode;
+	}
+
+	private static String firstNonEmpty(String first, String second) {
+		return !safe(first).isEmpty() ? first : second;
+	}
+
+	private static String cityAndProvince(String city, String province) {
+		String result = safe(city);
+		if(!safe(province).isEmpty()) result += (result.isEmpty() ? "" : " ") + "(" + safe(province) + ")";
+		return result;
+	}
+
+	private static String integerNumber(Number value) {
+		return value == null ? "" : Long.toString(Math.round(value.doubleValue()));
 	}
 
 	private static String number(Number number) {
@@ -343,6 +564,7 @@ public class SalePDFSupport {
 	 */
 	public static String create1(String filename, Sale sale) {
 		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
+		if(isMundiRiso(sale)) return createMundiRiso(filename, sale);
 		
 		try {
 			String src = ContextSupport.getUploadPath() + sale.getContract_template().getFilename();	
@@ -678,6 +900,7 @@ public class SalePDFSupport {
 	
 	public static String create2(String filename, Sale sale) {
 		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
+		if(isMundiRiso(sale)) return createMundiRiso(filename, sale);
 		
 	
 		try {
@@ -1230,6 +1453,7 @@ public class SalePDFSupport {
 	// CURTI
 	public static String create3(String filename, Sale sale) {
 		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
+		if(isMundiRiso(sale)) return createMundiRiso(filename, sale);
 		
 		
 		try {
@@ -1753,6 +1977,7 @@ public class SalePDFSupport {
 	
 	public static String create5(String filename, Sale sale) {
 		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
+		if(isMundiRiso(sale)) return createMundiRiso(filename, sale);
 		
 		
 		try {
@@ -2277,6 +2502,7 @@ public class SalePDFSupport {
 	
 	public static String create4(String filename, Sale sale) {
 		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
+		if(isMundiRiso(sale)) return createMundiRiso(filename, sale);
 		
 		try {
 			String src = ContextSupport.getUploadPath() + sale.getContract_template().getFilename();	
