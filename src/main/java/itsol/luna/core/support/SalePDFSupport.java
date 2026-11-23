@@ -189,13 +189,13 @@ public class SalePDFSupport {
 
 			// Merce e caratteristiche qualitative.
 			if(sp != null) {
-				text(canvas, bold, safe(sp.getName()), 107, 460, 155, 8);
+				text(canvas, bold, safe(sp.getName()), 145, 460, 112, 8);
 				if(sp.getProduct() != null) {
 					boxedText(canvas, regular, safe(sp.getProduct().getInternal_code()), 272.27f, 12.72f, 5, 460, 7);
 				}
-				text(canvas, bold, number(sp.getProduct_amount()), 357, 460, 83, 8);
-				text(canvas, bold, value(sp.getGrains_yield()), 464, 460, 42, 8);
-				text(canvas, bold, value(sp.getGlobal_yield()), 529, 460, 42, 8);
+				text(canvas, bold, quantityWithEndOfStock(sp), 357, 460, 83, 8);
+				text(canvas, bold, value(sp.getGrains_yield()), 483, 460, 24, 8);
+				text(canvas, bold, value(sp.getGlobal_yield()), 545, 460, 18, 8);
 				dateParts(canvas, regular, sale.getSale_date(), 452, 487, 519, 446);
 
 				text(canvas, regular, safe(sp.getHumidity()), 111, 409, 32, 8);
@@ -209,20 +209,20 @@ public class SalePDFSupport {
 				String price = !safe(sale.getAlt_list()).isEmpty() ? safe(sale.getAlt_list()) : number(sp.getAmount());
 				text(canvas, bold, price, 123, 328, 142, 9);
 				if("iva".equalsIgnoreCase(safe(sp.getAmount_type()))) {
-					mark(canvas, 290, 346);
+					mark(canvas, 290, 340);
 				} else {
-					mark(canvas, 290, 324);
+					mark(canvas, 290, 318);
 				}
 			}
 
 			text(canvas, bold, safe(sale.getMediation()), 123, 301, 142, 8);
-			text(canvas, regular, paymentDates(sale), 438, 312, 126, 7);
+			text(canvas, regular, paymentDates(sale), 438, 340, 126, 7);
 			text(canvas, regular, safe(sale.getPickup_time()), 414, 274, 150, 8);
 			if("SI".equalsIgnoreCase(safe(sale.getCarico_motrici()))) {
 				mark(canvas, 463, 239);
 			}
 			if("SI".equalsIgnoreCase(safe(sale.getCarico_al_coperto()))) {
-				mark(canvas, 553, 239);
+				mark(canvas, 539, 239);
 			}
 			text(canvas, regular, safe(sale.getParticular_conditions()), 34, 91, 525, 6.5f);
 
@@ -312,6 +312,9 @@ public class SalePDFSupport {
 			if(sp != null) {
 				text(canvas, bold, safe(sp.getName()), 147, 405, 165, 8);
 				boxedText(canvas, bold, integerNumber(sp.getProduct_amount()), 342.8f, 12.35f, 4, 405, 7);
+				if(isEndOfStock(sp)) {
+					text(canvas, bold, "F.M.", 394, 405, 12, 4.5f);
+				}
 				boxedText(canvas, bold, value(sp.getGrains_yield()), 455.35f, 12.55f, 2, 405, 7);
 				boxedText(canvas, bold, value(sp.getGlobal_yield()), 543.55f, 12.55f, 2, 405, 7);
 				text(canvas, bold, safe(sp.getHarvest_year()), 280, 383, 33, 8);
@@ -500,6 +503,19 @@ public class SalePDFSupport {
 		return value == null ? "" : Long.toString(Math.round(value.doubleValue()));
 	}
 
+	private static boolean isEndOfStock(SaleProduct product) {
+		if(product == null) return false;
+		String value = safe(product.getEnd_of_stock());
+		return "true".equalsIgnoreCase(value) || "si".equalsIgnoreCase(value)
+				|| "yes".equalsIgnoreCase(value) || "1".equals(value);
+	}
+
+	private static String quantityWithEndOfStock(SaleProduct product) {
+		if(product == null || product.getProduct_amount() == null) return "";
+		String quantity = NumberFormat.getNumberInstance(Locale.ITALY).format(product.getProduct_amount());
+		return quantity + (isEndOfStock(product) ? " F.M." : "");
+	}
+
 	private static String number(Number number) {
 		if(number == null) return "";
 		NumberFormat format = NumberFormat.getNumberInstance(Locale.ITALY);
@@ -664,11 +680,7 @@ public class SalePDFSupport {
 			
 
 			try {
-				if(sp.getEnd_of_stock().contentEquals("true")) {
-					fields.get("quantita").setValue((NumberFormat.getNumberInstance().format(sp.getProduct_amount()) + "       FINE MAGAZZINO").toUpperCase().replaceAll("NULL", "").replaceAll("NULL", "")).setReadOnly(true);
-				} else {
-					fields.get("quantita").setValue(NumberFormat.getNumberInstance().format(sp.getProduct_amount()).replaceAll("NULL", "")).setReadOnly(true);
-				}
+				fields.get("quantita").setValue(quantityWithEndOfStock(sp).toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
 			} catch(Exception ex) {
 				ex.printStackTrace();
 				try {
@@ -1177,11 +1189,7 @@ public class SalePDFSupport {
 
 			
 			try {
-				if(sp.getEnd_of_stock().contentEquals("true")) {
-					fields.get("quantita").setValue((NumberFormat.getNumberInstance().format(sp.getProduct_amount())+ " F. M.").toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
-				} else {
-					fields.get("quantita").setValue(NumberFormat.getNumberInstance().format(sp.getProduct_amount())).setReadOnly(true);
-				}
+				fields.get("quantita").setValue(quantityWithEndOfStock(sp).toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
 			} catch(Exception ex) {
 				try {
 					fields.get("quantita").setReadOnly(true);
@@ -1734,11 +1742,7 @@ public class SalePDFSupport {
 
 			
 			try {
-				if(sp.getEnd_of_stock().contentEquals("true")) {
-					fields.get("quantita").setValue((NumberFormat.getNumberInstance().format(sp.getProduct_amount()) + " F. M.").toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
-				} else {
-					fields.get("quantita").setValue(NumberFormat.getNumberInstance().format(sp.getProduct_amount())).setReadOnly(true);
-				}
+				fields.get("quantita").setValue(quantityWithEndOfStock(sp).toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
 			} catch(Exception ex) {
 				try {
 					fields.get("quantita").setReadOnly(true);
@@ -2258,11 +2262,7 @@ public class SalePDFSupport {
 
 			
 			try {
-				if(sp.getEnd_of_stock().contentEquals("true")) {
-					fields.get("quantita").setValue((NumberFormat.getNumberInstance().format(sp.getProduct_amount()) + " F. M.").toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
-				} else {
-					fields.get("quantita").setValue(NumberFormat.getNumberInstance().format(sp.getProduct_amount())).setReadOnly(true);
-				}
+				fields.get("quantita").setValue(quantityWithEndOfStock(sp).toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
 			} catch(Exception ex) {
 				try {
 					fields.get("quantita").setReadOnly(true);
@@ -2606,11 +2606,7 @@ public class SalePDFSupport {
 
 			
 			try {
-				if(sp.getEnd_of_stock().contentEquals("true")) {
-					fields.get("quantita").setValue((NumberFormat.getNumberInstance().format(sp.getProduct_amount()) + "       FINE MAGAZZINO").toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
-				} else {
-					fields.get("quantita").setValue(NumberFormat.getNumberInstance().format(sp.getProduct_amount())).setReadOnly(true);
-				}
+				fields.get("quantita").setValue(quantityWithEndOfStock(sp).toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
 			} catch(Exception ex) {
 				try {
 					fields.get("quantita").setReadOnly(true);

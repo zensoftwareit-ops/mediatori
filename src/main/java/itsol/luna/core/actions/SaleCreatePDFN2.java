@@ -491,8 +491,8 @@ public class SaleCreatePDFN2 extends MyActionSupport implements MyActionInterfac
 						String quantita = new String();
 						
 						try {
-							if(sp.getEnd_of_stock().contentEquals("true")) {
-								quantita = NumberFormat.getNumberInstance().format(sp.getProduct_amount()) + "       FINE MAGAZZINO";
+							if("true".equalsIgnoreCase(sp.getEnd_of_stock())) {
+								quantita = NumberFormat.getNumberInstance().format(sp.getProduct_amount()) + " F.M.";
 							} else {
 								quantita = NumberFormat.getNumberInstance().format(sp.getProduct_amount());
 							}
