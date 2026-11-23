@@ -18,6 +18,7 @@ import com.itextpdf.forms.fields.PdfFormField;
 import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
@@ -96,27 +97,41 @@ public class SalePDFSupport {
 			SaleProduct sp = sale.getProduct();
 
 			// Intestazione del contratto.
-			text(canvas, bold, value(sale.getNumber()), 84, 757, 50, 8);
+			boxedText(canvas, bold, value(sale.getNumber()), 81.42f, 12.72f, 6, 757, 8);
 			text(canvas, regular, safe(sale.getSeller() == null ? null : sale.getSeller().getLegal_city()), 218, 757, 190, 8);
 			dateParts(canvas, regular, sale.getSale_date(), 458, 497, 531, 757);
 
 			// Venditore.
 			if(sale.getSeller() != null) {
 				text(canvas, bold, safe(sale.getSeller().getBusiness_name()), 96, 716, 225, 8);
-				text(canvas, regular, safe(sale.getSeller().getInternal_code()), 337, 716, 105, 7);
+				boxedText(canvas, regular, safe(sale.getSeller().getInternal_code()), 334.81f, 12.72f, 9, 716, 7);
 				text(canvas, regular, phones(sale.getSeller().getPrimary_phone(), sale.getSeller().getSecondary_phone()), 472, 716, 90, 7);
 				text(canvas, regular, safe(sale.getSeller().getLegal_address()), 84, 698, 238, 8);
 				text(canvas, regular, phones(sale.getSeller().getPrimary_phone(), sale.getSeller().getSecondary_phone()), 472, 698, 90, 7);
 				text(canvas, regular, safe(sale.getSeller().getLegal_city()), 83, 680, 180, 8);
 				text(canvas, regular, safe(sale.getSeller().getLegal_province()), 310, 680, 20, 8);
-				String fiscal = firstNonBlank(sale.getSeller().getTax_code(), sale.getSeller().getVat_number());
-				text(canvas, regular, safe(fiscal), 390, 680, 165, 8);
+				String fiscal = taxIdentifier(sale.getSeller().getVat_number(), sale.getSeller().getTax_code());
+				boxedText(canvas, regular, fiscal, 334.81f, 12.72f, 18, 662, 7);
 				text(canvas, regular, safe(sale.getSeller().getPrimary_email()), 84, 662, 130, 7);
+			}
+
+			// Nel modello originale l'acquirente e' prestampato. Ripuliamo la riga
+			// fiscale e la riscriviamo dai dati della vendita: prima P. IVA, poi C.F.
+			// solo quando la P. IVA e' assente.
+			whiteout(canvas, 335, 541, 228, 16);
+			if(sale.getBuyer() != null) {
+				String buyerVat = safe(sale.getBuyer().getVat_number());
+				String buyerTax = taxIdentifier(buyerVat, sale.getBuyer().getTax_code());
+				text(canvas, regular, buyerVat.isEmpty() ? "C.F." : "P. IVA", 454, 546, 24, 7);
+				text(canvas, regular, buyerTax, 481, 545, 78, 8);
 			}
 
 			// Luogo di ritiro, solo se richiesto nella vendita.
 			if(!"NO".equalsIgnoreCase(safe(sale.getPickup_printing()))) {
 				text(canvas, regular, safe(sale.getPickup_place()), 145, 644, 176, 7);
+				if(sale.getSeller() != null) {
+					boxedText(canvas, regular, safe(sale.getSeller().getInternal_code()), 334.81f, 12.72f, 9, 644, 7);
+				}
 				text(canvas, regular, safe(sale.getPickup_phone()), 472, 644, 90, 7);
 				text(canvas, regular, safe(sale.getPickup_address()), 84, 626, 238, 8);
 				text(canvas, regular, safe(sale.getPickup_phone()), 472, 626, 90, 7);
@@ -132,6 +147,9 @@ public class SalePDFSupport {
 			// Merce e caratteristiche qualitative.
 			if(sp != null) {
 				text(canvas, bold, safe(sp.getName()), 107, 460, 155, 8);
+				if(sp.getProduct() != null) {
+					boxedText(canvas, regular, safe(sp.getProduct().getInternal_code()), 272.27f, 12.72f, 5, 460, 7);
+				}
 				text(canvas, bold, number(sp.getProduct_amount()), 357, 460, 83, 8);
 				text(canvas, bold, value(sp.getGrains_yield()), 464, 460, 42, 8);
 				text(canvas, bold, value(sp.getGlobal_yield()), 529, 460, 42, 8);
@@ -204,6 +222,26 @@ public class SalePDFSupport {
 		canvas.beginText().setFontAndSize(font, current).moveText(x, y).showText(text).endText();
 	}
 
+	private static void boxedText(PdfCanvas canvas, PdfFont font, String text, float startX,
+			float cellWidth, int cells, float y, float size) {
+		text = safe(text).replaceAll("\\s+", "").toUpperCase(Locale.ITALY);
+		int length = Math.min(text.length(), cells);
+		for(int i = 0; i < length; i++) {
+			String character = text.substring(i, i + 1);
+			float width = font.getWidth(character, size);
+			float x = startX + (i * cellWidth) + Math.max(0, (cellWidth - width) / 2f);
+			text(canvas, font, character, x, y, cellWidth, size);
+		}
+	}
+
+	private static void whiteout(PdfCanvas canvas, float x, float y, float width, float height) {
+		canvas.saveState();
+		canvas.setFillColor(ColorConstants.WHITE);
+		canvas.rectangle(x, y, width, height);
+		canvas.fill();
+		canvas.restoreState();
+	}
+
 	private static void mark(PdfCanvas canvas, float x, float y) throws Exception {
 		text(canvas, PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD), "X", x, y, 10, 10);
 	}
@@ -237,8 +275,8 @@ public class SalePDFSupport {
 		return safe(first) + " / " + safe(second);
 	}
 
-	private static String firstNonBlank(String first, String second) {
-		return !safe(first).isEmpty() ? first : second;
+	private static String taxIdentifier(String vatNumber, String taxCode) {
+		return !safe(vatNumber).isEmpty() ? vatNumber : taxCode;
 	}
 
 	private static String number(Number number) {
