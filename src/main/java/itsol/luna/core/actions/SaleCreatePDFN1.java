@@ -1,6 +1,7 @@
 package itsol.luna.core.actions;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,7 +22,9 @@ import com.itextpdf.text.Font;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfImportedPage;
 import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfWriter;
 
@@ -38,6 +41,28 @@ import itsol.luna.core.utils.PdfLogoSupport;
 
 public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterface {
 
+	private static final long GHISONI_ADMIN_ID = 2L;
+	private static final String GHISONI_RICE_TEMPLATE = "contratto_ghisoni_01.pdf";
+	private static final String RICE_GENERAL_CONDITIONS = "/WEB-INF/templates/condizioni_generali_risone.pdf";
+	private static final String DURATION_CLAUSE = "In deroga all'art. 3 comma 4 del D.lgs. 8 novembre 2021 n.198, le parti convengono "
+			+ "una durata del contratto inferiore a 12 mesi in ragione del reciproco interesse commerciale a che le prestazioni "
+			+ "vengano eseguite nei termini concordati nel presente contratto e tenuto in considerazione che la volatilità dei prezzi "
+			+ "nel settore non consente la definizione di un prezzo oltre gli stessi termini concordati";
+	private static final String FORCE_MAJEURE_CLAUSE = "Al verificarsi di un evento non controllabile, imprevedibile e inevitabile che impedisca ad una parte di eseguire "
+			+ "la prestazione, la parte impedita è esonerata dall'adempimento dei propri obblighi contrattuali se fornisce la prova "
+			+ "dell'evento e dimostra che l'impedimento esula dalla sua ragionevole sfera di controllo, che non poteva essere "
+			+ "ragionevolmente previsto e che i suoi effetti non avrebbero potuto essere evitati. La comunicazione di una causa di "
+			+ "forza maggiore deve essere trasmessa alla controparte non oltre 3 giorni dal verificarsi dell'impedimento. Qualora "
+			+ "l'impedimento abbia carattere temporaneo, il termine di esecuzione verrà prorogato di tanti giorni quanti sono i giorni "
+			+ "dell'impedimento. Qualora l'impedimento superi 30 giorni, il contratto è risolto ai sensi dell'art.1456 del codice civile. "
+			+ "Se in seguito al verificarsi di una causa di forza maggiore la prestazione diviene non eseguibile solo parzialmente, "
+			+ "l'obbligazione contrattuale permane per la parte eseguibile. Sono fatte salve le prestazioni già eseguite";
+	private static final String SPECIFIC_APPROVAL_CLAUSE = "Ai sensi e per gli effetti di cui all'art. 1341, secondo comma, cod. ci. "
+			+ "dichiariamo di approvare espressamente le clausole del presente stabilito in deroga alle condizioni generali di contratto "
+			+ "che qui si intendono integralmente richiamate: Art. 5, clausola risolutiva espressa (art. 1454 cod. civ.); Art. 7, assunzioni "
+			+ "dei rischi di viaggio; Art. 10, rifiuto di una consegna; Art. 11, arbitraggio tecnico; Art. 12, effetti dei ritardati pagamenti; "
+			+ "Art. 13, clausola risolutiva espressa (art. 1454 cod. civ.); Art. 15, conciliazione ed arbitrato.";
+
 	/**
 	 * 
 	 */
@@ -47,6 +72,7 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 	Font regular_bold = new Font(Font.FontFamily.HELVETICA, 9, Font.BOLD);
 	Font small = new Font(Font.FontFamily.HELVETICA, 7, Font.NORMAL);
 	Font small_bold = new Font(Font.FontFamily.HELVETICA, 7, Font.BOLD);
+	Font legal_tiny = new Font(Font.FontFamily.HELVETICA, (float)4.5, Font.NORMAL);
 	Font console = new Font(Font.FontFamily.TIMES_ROMAN, 9, Font.NORMAL);
 	
 	Document document;
@@ -1545,11 +1571,13 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 						table = new PdfPTable(new float[] { 1 });
 						table.setTotalWidth(530);
 						table.setLockedWidth(true);
-						table.setSpacingBefore(15);
+						table.setSpacingBefore(isGhisoniRiceContract() ? 3 : 15);
 						
-						p = new Phrase("Ai sensi e per gli effetti di cui all'art. 1341, secondo comma, cod. ci. dichiariamo di approvare espressamente le clausole del presente stabilito in deroga alle condizioni generali di contratto che qui si intendono "
-								+ "integralmente richiamate: Art. 5, clausola risolutiva espressa (art. 1454 cod. civ.); Art. 7, assunzioni dei rischi di viaggio; Art. 10, rifiuto di una consegna; Art. 11, arbitraggio tecnico; Art. 12, effetti dei ritardati "
-								+ "pagamenti; Art. 13, clausola risolutiva espressa (art. 1454 cod. civ.); Art. 15, conciliazione ed arbitrato.", small);
+						if(isGhisoniRiceContract()) {
+							p = new Phrase(5, DURATION_CLAUSE + "\n" + FORCE_MAJEURE_CLAUSE + "\n" + SPECIFIC_APPROVAL_CLAUSE, legal_tiny);
+						} else {
+							p = new Phrase(SPECIFIC_APPROVAL_CLAUSE, small);
+						}
 						
 						cell = new PdfPCell(p);
 						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
@@ -1788,6 +1816,10 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 		
 					
 					//fine
+
+					if(isGhisoniRiceContract()) {
+						appendRiceGeneralConditions();
+					}
 	
 					document.close();
 					
@@ -1818,6 +1850,32 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 		}
 		
 		return null;
+	}
+
+	private boolean isGhisoniRiceContract() {
+		return sale != null
+				&& sale.getAdmin() != null
+				&& sale.getAdmin().getId() != null
+				&& sale.getAdmin().getId().longValue() == GHISONI_ADMIN_ID
+				&& sale.getContract_template() != null
+				&& GHISONI_RICE_TEMPLATE.equalsIgnoreCase(sale.getContract_template().getFilename());
+	}
+
+	private void appendRiceGeneralConditions() throws Exception {
+		try(InputStream input = ServletActionContext.getServletContext().getResourceAsStream(RICE_GENERAL_CONDITIONS)) {
+			if(input == null) {
+				throw new IllegalStateException("Secondo foglio delle condizioni generali non trovato: " + RICE_GENERAL_CONDITIONS);
+			}
+			PdfReader conditions = new PdfReader(input);
+			try {
+				writer.setPageEvent(null);
+				document.newPage();
+				PdfImportedPage page = writer.getImportedPage(conditions, 1);
+				writer.getDirectContent().addTemplate(page, 0, 0);
+			} finally {
+				conditions.close();
+			}
+		}
 	}
 
 }
