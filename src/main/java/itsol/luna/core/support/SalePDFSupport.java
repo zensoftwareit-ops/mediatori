@@ -38,6 +38,8 @@ public class SalePDFSupport {
 	private static final String RISO_GALLO_TEMPLATE = "/WEB-INF/templates/contratto_riso_gallo_2026.pdf";
 	private static final String MUNDI_RISO_VAT = "01818090027";
 	private static final String MUNDI_RISO_TEMPLATE = "/WEB-INF/templates/contratto_mundi_riso.pdf";
+	private static final String VIAZZO_VAT = "01502060021";
+	private static final String VIAZZO_TEMPLATE = "/WEB-INF/templates/contratto_viazzo_2026.pdf";
 	private static final long GHISONI_ADMIN_ID = 2L;
 	private static final long FORTE_ADMIN_ID = 3L;
 	private static final String GHISONI_SIGNATURE = "/images/firma_ghisoni.jpg";
@@ -73,6 +75,19 @@ public class SalePDFSupport {
 		return name.contains("MUNDIRISO");
 	}
 
+	/** Il modello Viazzo aggiornato e' globale per tutti gli utenti del gestionale. */
+	public static boolean isViazzo(Sale sale) {
+		if(sale == null || sale.getBuyer() == null) {
+			return false;
+		}
+		String vat = onlyDigits(sale.getBuyer().getVat_number());
+		if(VIAZZO_VAT.equals(vat)) {
+			return true;
+		}
+		String name = safe(sale.getBuyer().getBusiness_name()).toUpperCase(Locale.ITALY).replaceAll("[^A-Z0-9]", "");
+		return name.contains("RISOVIAZZO") || name.equals("VIAZZO") || name.startsWith("VIAZZO");
+	}
+
 	public static String createRisoGallo(String filename, Sale sale) {
 		String dest = ContextSupport.getUploadPath() + filename;
 		try(InputStream src = ServletActionContext.getServletContext().getResourceAsStream(RISO_GALLO_TEMPLATE);
@@ -99,6 +114,34 @@ public class SalePDFSupport {
 			logPdfError(ex);
 		}
 		return filename;
+	}
+
+	public static String createViazzo(String filename, Sale sale) {
+		String dest = ContextSupport.getUploadPath() + filename;
+		try(InputStream src = ServletActionContext.getServletContext().getResourceAsStream(VIAZZO_TEMPLATE);
+			OutputStream out = new FileOutputStream(dest)) {
+			if(src == null) {
+				throw new IllegalStateException("Modello contratto Viazzo non trovato: " + VIAZZO_TEMPLATE);
+			}
+			writeViazzo(src, out, sale, mediatorSignature(sale));
+		} catch(Exception ex) {
+			logPdfError(ex);
+		}
+		return filename;
+	}
+
+	/** Metodo separato usato dalla verifica visuale del modello Viazzo. */
+	public static void createViazzoFromTemplate(String template, String destination, Sale sale) throws Exception {
+		try(InputStream src = new FileInputStream(template); OutputStream out = new FileOutputStream(destination)) {
+			writeViazzo(src, out, sale, null);
+		}
+	}
+
+	public static void createViazzoFromTemplate(String template, String destination, String signature, Sale sale) throws Exception {
+		try(InputStream src = new FileInputStream(template); OutputStream out = new FileOutputStream(destination);
+			InputStream signatureStream = new FileInputStream(signature)) {
+			writeViazzo(src, out, sale, signatureStream.readAllBytes());
+		}
 	}
 
 	/** Metodo separato usato dal test di impaginazione del modello Mundi. */
@@ -370,6 +413,116 @@ public class SalePDFSupport {
 		}
 	}
 
+	private static void writeViazzo(InputStream source, OutputStream destination, Sale sale, byte[] mediatorSignature) throws Exception {
+		PdfDocument pdfDoc = new PdfDocument(new PdfReader(source), new PdfWriter(destination));
+		try {
+			PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDoc, true);
+			SaleProduct sp = sale.getProduct();
+			String sellerName = sale.getSeller() == null ? "" : safe(sale.getSeller().getBusiness_name());
+			String sellerCity = sale.getSeller() == null ? "" : safe(sale.getSeller().getLegal_city());
+			String sellerProvince = sale.getSeller() == null ? "" : safe(sale.getSeller().getLegal_province());
+			String sellerAddress = sale.getSeller() == null ? "" : safe(sale.getSeller().getLegal_address());
+			String sellerTax = sale.getSeller() == null ? "" : taxIdentifier(sale.getSeller().getVat_number(), sale.getSeller().getTax_code());
+			String sellerPhones = sale.getSeller() == null ? "" : phones(sale.getSeller().getPrimary_phone(), sale.getSeller().getSecondary_phone());
+
+			fillField(form, "Contratto n stipulato a il", value(sale.getNumber()), 9);
+			fillField(form, "Stipulato A", sellerCity, 8);
+			fillField(form, "Stipulato il", date(sale.getSale_date()), 8);
+
+			fillField(form, "na del legale rappresentante Sig Nicola Viazzo  parte acquirente", sellerName, 9);
+			fillField(form, "con sede legale in", sellerCity, 9);
+			fillField(form, "undefined", sellerProvince, 8);
+			fillField(form, "Via", sellerAddress, 9);
+			fillField(form, "Cod Fisc e Partita IVA", sellerTax, 9);
+			fillField(form, "RIF TELEFONICI", sellerPhones, 8);
+			if(!"NO".equalsIgnoreCase(safe(sale.getPickup_printing()))) {
+				fillField(form, "MITTENTE", pickupDetails(sale), 7);
+			}
+
+			if(sp != null) {
+				fillField(form, "VARIETA", safe(sp.getName()), 9);
+				fillField(form, "RACCOLTO", safe(sp.getHarvest_year()), 9);
+				fillField(form, "ORIGINE", "ITALIA", 9);
+				fillField(form, "Quantit\u00e0 TON", quantityWithEndOfStock(sp), 8);
+				fillField(form, "UMIDITA.1", safe(sp.getHumidity()), 9);
+				fillField(form, "RESA", yields(sp), 9);
+				fillField(form, "DIFETTI", safe(sp.getDefects()), 9);
+				fillField(form, "TON IVA compresa", viazzoPrice(sp, sale), 8);
+			}
+
+			fillField(form, "entro", safe(sale.getPickup_time()), 7);
+			fillField(form, "Il pagamento avverr\u00e0 nel pieno rispetto dei modi e dei termini stabiliti dallart 4 del D Lgs n 1982021", paymentDates(sale), 7);
+			fillField(form, "al quale la parte acquirente riconosce un compenso provvigionale di", sale.getAdmin() == null ? "" : safe(sale.getAdmin().getFull_name()), 8);
+			fillField(form, "Euro", safe(sale.getMediation()), 8);
+			fillField(form, "DATA", date(sale.getSale_date()), 7);
+			fillField(form, "l\u00ec", sellerCity, 7);
+
+			if("SI".equalsIgnoreCase(safe(sale.getSignedBuyer())) && sale.getSignedBuyerDate() != null && sale.getBuyer() != null) {
+				String signature = "Firmato da " + sale.getBuyer().getSigner() + " il " + date(sale.getSignedBuyerDate());
+				fillField(form, "PARTE ACQUIRENTE", signature, 5.3f);
+				fillField(form, "PARTE ACQUIRENTE_2", signature, 6.5f);
+			}
+			if("SI".equalsIgnoreCase(safe(sale.getSignedSeller())) && sale.getSignedSellerDate() != null && sale.getSeller() != null) {
+				String signature = "Firmato da " + sale.getSeller().getSigner() + " il " + date(sale.getSignedSellerDate());
+				fillField(form, "PARTE VENDITRICE", signature, 5.3f);
+				fillField(form, "PARTE VENDITRICE_2", signature, 6.5f);
+			}
+			if(mediatorSignature == null || mediatorSignature.length == 0) {
+				fillField(form, "IL MEDIATORE", sale.getAdmin() == null ? "" : safe(sale.getAdmin().getFull_name()), 7);
+			}
+
+			form.flattenFields();
+			if(mediatorSignature != null && mediatorSignature.length > 0) {
+				PdfCanvas canvas = new PdfCanvas(pdfDoc.getPage(1));
+				ImageData signature = ImageDataFactory.create(mediatorSignature);
+				if(isAdmin(sale, FORTE_ADMIN_ID)) {
+					canvas.addImage(signature, new Rectangle(448, 78, 124, 22), false);
+				} else {
+					canvas.addImage(signature, new Rectangle(462, 82, 96, 16), false);
+				}
+			}
+		} finally {
+			pdfDoc.close();
+		}
+	}
+
+	private static void fillField(PdfAcroForm form, String name, String value, float fontSize) {
+		PdfFormField field = form.getField(name);
+		if(field == null) return;
+		field.setFontSize(fontSize);
+		field.setValue(safe(value).replaceAll("(?i)null", "").trim());
+		field.setReadOnly(true);
+	}
+
+	private static String pickupDetails(Sale sale) {
+		StringBuilder result = new StringBuilder();
+		appendPart(result, safe(sale.getPickup_place()));
+		appendPart(result, safe(sale.getPickup_address()));
+		appendPart(result, cityAndProvince(sale.getPickup_city(), sale.getPickup_province()));
+		appendPart(result, safe(sale.getPickup_phone()));
+		return result.toString();
+	}
+
+	private static void appendPart(StringBuilder value, String part) {
+		if(safe(part).isEmpty()) return;
+		if(value.length() > 0) value.append(" - ");
+		value.append(part);
+	}
+
+	private static String yields(SaleProduct product) {
+		String grains = value(product.getGrains_yield());
+		String global = value(product.getGlobal_yield());
+		if(grains.isEmpty()) return global;
+		if(global.isEmpty()) return grains;
+		return grains + " / " + global;
+	}
+
+	private static String viazzoPrice(SaleProduct product, Sale sale) {
+		String price = !safe(sale.getAlt_list()).isEmpty() ? safe(sale.getAlt_list()) : number(product.getAmount());
+		if(price.isEmpty()) return "";
+		return price + ("iva".equalsIgnoreCase(safe(product.getAmount_type())) ? " IVA INCLUSA" : " IVA ESCLUSA");
+	}
+
 	private static void text(PdfCanvas canvas, PdfFont font, String text, float x, float y, float maxWidth, float size) {
 		text = safe(text).replace('\n', ' ').replace('\r', ' ').trim();
 		if(text.isEmpty()) return;
@@ -581,6 +734,7 @@ public class SalePDFSupport {
 	public static String create1(String filename, Sale sale) {
 		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
 		if(isMundiRiso(sale)) return createMundiRiso(filename, sale);
+		if(isViazzo(sale)) return createViazzo(filename, sale);
 		
 		try {
 			String src = ContextSupport.getUploadPath() + sale.getContract_template().getFilename();	
@@ -913,6 +1067,7 @@ public class SalePDFSupport {
 	public static String create2(String filename, Sale sale) {
 		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
 		if(isMundiRiso(sale)) return createMundiRiso(filename, sale);
+		if(isViazzo(sale)) return createViazzo(filename, sale);
 		
 	
 		try {
@@ -1462,6 +1617,7 @@ public class SalePDFSupport {
 	public static String create3(String filename, Sale sale) {
 		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
 		if(isMundiRiso(sale)) return createMundiRiso(filename, sale);
+		if(isViazzo(sale)) return createViazzo(filename, sale);
 		
 		
 		try {
@@ -1982,6 +2138,7 @@ public class SalePDFSupport {
 	public static String create5(String filename, Sale sale) {
 		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
 		if(isMundiRiso(sale)) return createMundiRiso(filename, sale);
+		if(isViazzo(sale)) return createViazzo(filename, sale);
 		
 		
 		try {
@@ -2503,6 +2660,7 @@ public class SalePDFSupport {
 	public static String create4(String filename, Sale sale) {
 		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
 		if(isMundiRiso(sale)) return createMundiRiso(filename, sale);
+		if(isViazzo(sale)) return createViazzo(filename, sale);
 		
 		try {
 			String src = ContextSupport.getUploadPath() + sale.getContract_template().getFilename();	
