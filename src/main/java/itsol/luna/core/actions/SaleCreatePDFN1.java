@@ -1818,10 +1818,10 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 					//fine
 
 					if(isGhisoniRiceContract()) {
-						appendRiceGeneralConditions();
+						appendRiceGeneralConditionsAndClose();
+					} else {
+						document.close();
 					}
-	
-					document.close();
 					
 					//------------------------------ genero il pdf
 		            ContextSupport.getResponse().setContentType("application/pdf");
@@ -1861,7 +1861,7 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 				&& GHISONI_RICE_TEMPLATE.equalsIgnoreCase(sale.getContract_template().getFilename());
 	}
 
-	private void appendRiceGeneralConditions() throws Exception {
+	private void appendRiceGeneralConditionsAndClose() throws Exception {
 		try(InputStream input = ServletActionContext.getServletContext().getResourceAsStream(RICE_GENERAL_CONDITIONS)) {
 			if(input == null) {
 				throw new IllegalStateException("Secondo foglio delle condizioni generali non trovato: " + RICE_GENERAL_CONDITIONS);
@@ -1872,6 +1872,7 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 				document.newPage();
 				PdfImportedPage page = writer.getImportedPage(conditions, 1);
 				writer.getDirectContent().addTemplate(page, 0, 0);
+				document.close();
 			} finally {
 				conditions.close();
 			}
