@@ -72,7 +72,8 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 	Font regular_bold = new Font(Font.FontFamily.HELVETICA, 9, Font.BOLD);
 	Font small = new Font(Font.FontFamily.HELVETICA, 7, Font.NORMAL);
 	Font small_bold = new Font(Font.FontFamily.HELVETICA, 7, Font.BOLD);
-	Font legal_tiny = new Font(Font.FontFamily.HELVETICA, (float)4.5, Font.NORMAL);
+	Font legal_small = new Font(Font.FontFamily.HELVETICA, (float)5.5, Font.NORMAL);
+	Font legal_small_bold = new Font(Font.FontFamily.HELVETICA, (float)5.5, Font.BOLD);
 	Font console = new Font(Font.FontFamily.TIMES_ROMAN, 9, Font.NORMAL);
 	
 	Document document;
@@ -1343,7 +1344,9 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 					
 					table.addCell(cell);
 					
-					document.add(table);
+					if(!isGhisoniRiceContract()) {
+						document.add(table);
+					}
 				} catch(Exception ex) {}
 					
 					try {
@@ -1571,21 +1574,21 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 						table = new PdfPTable(new float[] { 1 });
 						table.setTotalWidth(530);
 						table.setLockedWidth(true);
-						table.setSpacingBefore(isGhisoniRiceContract() ? 3 : 15);
+						table.setSpacingBefore(isGhisoniRiceContract() ? 0 : 15);
 						
 						if(isGhisoniRiceContract()) {
-							p = new Phrase(5, DURATION_CLAUSE + "\n" + FORCE_MAJEURE_CLAUSE + "\n" + SPECIFIC_APPROVAL_CLAUSE, legal_tiny);
+							addLegalClause(table, "1. DURATA DEL CONTRATTO: ", DURATION_CLAUSE, true);
+							addLegalClause(table, "2. FORZA MAGGIORE: ", FORCE_MAJEURE_CLAUSE, false);
+							addLegalClause(table, "3. APPROVAZIONE SPECIFICA: ", SPECIFIC_APPROVAL_CLAUSE, false);
 						} else {
 							p = new Phrase(SPECIFIC_APPROVAL_CLAUSE, small);
+							cell = new PdfPCell(p);
+							cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+							cell.setBorderWidth(0);
+							cell.setPaddingBottom(0);
+							cell.setPaddingTop(0);
+							table.addCell(cell);
 						}
-						
-						cell = new PdfPCell(p);
-						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
-						cell.setBorderWidth(0);
-						cell.setPaddingBottom(0);
-						cell.setPaddingTop(0);
-						
-						table.addCell(cell);
 						
 						document.add(table);
 					} catch(Exception ex) {}
@@ -1859,6 +1862,18 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 				&& sale.getAdmin().getId().longValue() == GHISONI_ADMIN_ID
 				&& sale.getContract_template() != null
 				&& GHISONI_RICE_TEMPLATE.equalsIgnoreCase(sale.getContract_template().getFilename());
+	}
+
+	private void addLegalClause(PdfPTable table, String title, String text, boolean first) {
+		Phrase phrase = new Phrase((float)5.9);
+		phrase.add(new Chunk(title, legal_small_bold));
+		phrase.add(new Chunk(text, legal_small));
+		PdfPCell clause = new PdfPCell(phrase);
+		clause.setHorizontalAlignment(Element.ALIGN_LEFT);
+		clause.setBorderWidth(0);
+		clause.setPaddingTop(first ? 0 : (float)1.5);
+		clause.setPaddingBottom(0);
+		table.addCell(clause);
 	}
 
 	private void appendRiceGeneralConditionsAndClose() throws Exception {
