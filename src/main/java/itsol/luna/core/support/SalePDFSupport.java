@@ -453,7 +453,8 @@ public class SalePDFSupport {
 			fillField(form, "entro", safe(sale.getPickup_time()), 7);
 			fillField(form, "Il pagamento avverr\u00e0 nel pieno rispetto dei modi e dei termini stabiliti dallart 4 del D Lgs n 1982021", paymentDates(sale), 7);
 			fillField(form, "al quale la parte acquirente riconosce un compenso provvigionale di", sale.getAdmin() == null ? "" : safe(sale.getAdmin().getFull_name()), 8);
-			fillField(form, "Euro", safe(sale.getMediation()), 8);
+			// Viazzo applica sempre la provvigione concordata di 5 euro per tonnellata.
+			fillField(form, "Euro", "5,00", 8);
 			fillField(form, "DATA", date(sale.getSale_date()), 7);
 			fillField(form, "l\u00ec", sellerCity, 7);
 
