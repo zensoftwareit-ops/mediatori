@@ -8,6 +8,7 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -199,7 +200,7 @@ public class SalePDFSupport {
 				text(canvas, regular, safe(sale.getSeller().getLegal_city()), 83, 680, 180, 8);
 				text(canvas, regular, safe(sale.getSeller().getLegal_province()), 310, 680, 20, 8);
 				String fiscal = taxIdentifier(sale.getSeller().getVat_number(), sale.getSeller().getTax_code());
-				boxedText(canvas, regular, fiscal, 334.81f, 12.72f, 18, 662, 7);
+				text(canvas, regular, fiscal, 381, 680, 177, 8);
 				text(canvas, regular, safe(sale.getSeller().getPrimary_email()), 84, 662, 130, 7);
 			}
 
@@ -326,9 +327,6 @@ public class SalePDFSupport {
 				text(canvas, regular, safe(sale.getPickup_phone()), 445, 589, 116, 7);
 				boxedText(canvas, regular, safe(sale.getPickup_zip_code()), 51.2f, 12.75f, 5, 572, 7);
 				text(canvas, regular, cityAndProvince(sale.getPickup_city(), sale.getPickup_province()), 166, 572, 160, 8);
-				if(sale.getSeller() != null) {
-					boxedText(canvas, regular, taxIdentifier(sale.getSeller().getVat_number(), sale.getSeller().getTax_code()), 367.3f, 12.55f, 16, 572, 7);
-				}
 			}
 
 			// L'anagrafica Mundi e' prestampata: l'identificativo fiscale viene
@@ -679,7 +677,10 @@ public class SalePDFSupport {
 	}
 
 	private static String dateTime(java.util.Date date) {
-		return date == null ? "" : new SimpleDateFormat("dd/MM/yyyy HH:mm").format(date);
+		if(date == null) return "";
+		SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ITALY);
+		format.setTimeZone(TimeZone.getTimeZone("Europe/Rome"));
+		return format.format(date);
 	}
 
 	private static String safe(String value) {
