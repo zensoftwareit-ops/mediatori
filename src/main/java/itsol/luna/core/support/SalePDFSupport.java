@@ -15,6 +15,7 @@ import org.apache.struts2.ServletActionContext;
 
 import com.itextpdf.forms.PdfAcroForm;
 import com.itextpdf.forms.fields.PdfFormField;
+import com.itextpdf.forms.fields.PdfTextFormField;
 import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
@@ -23,6 +24,7 @@ import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.pdf.PdfPage;
+import com.itextpdf.kernel.pdf.PdfArray;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -44,6 +46,7 @@ public class SalePDFSupport {
 	private static final long FORTE_ADMIN_ID = 3L;
 	private static final String GHISONI_SIGNATURE = "/images/firma_ghisoni.jpg";
 	private static final String FORTE_SIGNATURE = "/images/firma_forte.png";
+	private static final String FORTE_RICE_TEMPLATE = "contratto_forte_01.pdf";
 
 	/**
 	 * Il contratto Riso Gallo e' globale e prevale sul modello scelto nella vendita.
@@ -190,7 +193,6 @@ public class SalePDFSupport {
 			// Venditore.
 			if(sale.getSeller() != null) {
 				text(canvas, bold, safe(sale.getSeller().getBusiness_name()), 96, 716, 225, 8);
-				boxedText(canvas, regular, safe(sale.getSeller().getInternal_code()), 334.81f, 12.72f, 9, 716, 7);
 				text(canvas, regular, phones(sale.getSeller().getPrimary_phone(), sale.getSeller().getSecondary_phone()), 472, 716, 90, 7);
 				text(canvas, regular, safe(sale.getSeller().getLegal_address()), 84, 698, 238, 8);
 				text(canvas, regular, phones(sale.getSeller().getPrimary_phone(), sale.getSeller().getSecondary_phone()), 472, 698, 90, 7);
@@ -215,9 +217,6 @@ public class SalePDFSupport {
 			// Luogo di ritiro, solo se richiesto nella vendita.
 			if(!"NO".equalsIgnoreCase(safe(sale.getPickup_printing()))) {
 				text(canvas, regular, safe(sale.getPickup_place()), 145, 644, 176, 7);
-				if(sale.getSeller() != null) {
-					boxedText(canvas, regular, safe(sale.getSeller().getInternal_code()), 334.81f, 12.72f, 9, 644, 7);
-				}
 				text(canvas, regular, safe(sale.getPickup_phone()), 472, 644, 90, 7);
 				text(canvas, regular, safe(sale.getPickup_address()), 84, 626, 238, 8);
 				text(canvas, regular, safe(sale.getPickup_phone()), 472, 626, 90, 7);
@@ -233,9 +232,6 @@ public class SalePDFSupport {
 			// Merce e caratteristiche qualitative.
 			if(sp != null) {
 				text(canvas, bold, safe(sp.getName()), 145, 460, 112, 8);
-				if(sp.getProduct() != null) {
-					boxedText(canvas, regular, safe(sp.getProduct().getInternal_code()), 272.27f, 12.72f, 5, 460, 7);
-				}
 				text(canvas, bold, quantityWithEndOfStock(sp), 357, 460, 83, 8);
 				text(canvas, bold, value(sp.getGrains_yield()), 483, 460, 24, 8);
 				text(canvas, bold, value(sp.getGlobal_yield()), 545, 460, 18, 8);
@@ -314,7 +310,6 @@ public class SalePDFSupport {
 
 			if(sale.getSeller() != null) {
 				text(canvas, bold, safe(sale.getSeller().getBusiness_name()), 30, 684, 245, 8);
-				boxedText(canvas, regular, safe(sale.getSeller().getInternal_code()), 292.1f, 12.48f, 12, 684, 7);
 				text(canvas, regular, safe(sale.getSeller().getPrimary_phone()), 445, 684, 116, 7);
 				text(canvas, regular, safe(sale.getSeller().getLegal_address()), 85, 666, 190, 8);
 				text(canvas, regular, safe(sale.getSeller().getSecondary_phone()), 445, 666, 116, 7);
@@ -326,9 +321,6 @@ public class SalePDFSupport {
 
 			if(!"NO".equalsIgnoreCase(safe(sale.getPickup_printing()))) {
 				text(canvas, regular, safe(sale.getPickup_place()), 162, 607, 114, 7);
-				if(sale.getSeller() != null) {
-					boxedText(canvas, regular, safe(sale.getSeller().getInternal_code()), 291.7f, 12.55f, 12, 607, 7);
-				}
 				text(canvas, regular, safe(sale.getPickup_phone()), 445, 607, 116, 7);
 				text(canvas, regular, safe(sale.getPickup_address()), 85, 589, 190, 8);
 				text(canvas, regular, safe(sale.getPickup_phone()), 445, 589, 116, 7);
@@ -1069,16 +1061,29 @@ public class SalePDFSupport {
 		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
 		if(isMundiRiso(sale)) return createMundiRiso(filename, sale);
 		if(isViazzo(sale)) return createViazzo(filename, sale);
-		
-	
-		try {
-			String src = ContextSupport.getUploadPath() + sale.getContract_template().getFilename();	
+		boolean forteRice = FORTE_RICE_TEMPLATE.equalsIgnoreCase(sale.getContract_template().getFilename());
+		try (InputStream source = forteRice
+				? ServletActionContext.getServletContext().getResourceAsStream("/WEB-INF/templates/" + FORTE_RICE_TEMPLATE)
+				: new FileInputStream(ContextSupport.getUploadPath() + sale.getContract_template().getFilename())) {
 			String dest = ContextSupport.getUploadPath() + filename;
-			
-			PdfDocument pdfDoc = new PdfDocument(new PdfReader(src), new PdfWriter(dest));
-				
+			writeContract2(source, dest, sale, forteRice);
+		} catch(Exception ex) {
+			logPdfError(ex);
+		}
+		return filename;
+	}
+
+	static void writeContract2(InputStream source, String destination, Sale sale, boolean forteRice) throws Exception {
+		try (PdfDocument pdfDoc = new PdfDocument(new PdfReader(source), new PdfWriter(destination))) {
 			PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDoc, true);
 			Map<String, PdfFormField> fields = form.getFormFields();
+			if(forteRice) {
+				PdfTextFormField number = (PdfTextFormField) fields.get("numero_contratto");
+				number.setMaxLen(6);
+				number.setComb(true);
+				fields.get("acquirente").getWidgets().get(0)
+						.setRectangle(new PdfArray(new Rectangle(88, 579, 363, 17)));
+			}
 			
 			SaleProduct sp = sale.getProduct();
 			
@@ -1488,15 +1493,19 @@ public class SalePDFSupport {
 			}
 			
 			try {
-				String dates = "";
-				for(int i = 0; i < sale.getInstallments().size(); i++) {
-					dates += new SimpleDateFormat("dd/MM/yyyy").format(sale.getInstallments().get(i).getExpire_date()) + " ";
-				}
-				//aggiungere le date successive di pagamenti
-				if(dates.equals("") || sale.getPayment().getInstallments() == 0) {
-					fields.get("scadenza_pagamento").setValue(sale.getPayment().getDescription()).setReadOnly(true);
+				if(forteRice) {
+					fillForteRiceField(fields.get("scadenza_pagamento"), paymentDates(sale),
+							new Rectangle(436, 318, 123, 32), 9);
 				} else {
-					fields.get("scadenza_pagamento").setValue(dates.toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
+					String dates = "";
+					for(int i = 0; i < sale.getInstallments().size(); i++) {
+						dates += new SimpleDateFormat("dd/MM/yyyy").format(sale.getInstallments().get(i).getExpire_date()) + " ";
+					}
+					if(dates.equals("") || sale.getPayment().getInstallments() == 0) {
+						fields.get("scadenza_pagamento").setValue(sale.getPayment().getDescription()).setReadOnly(true);
+					} else {
+						fields.get("scadenza_pagamento").setValue(dates.toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
+					}
 				}
 			} catch(Exception ex) {
 				try {
@@ -1514,7 +1523,12 @@ public class SalePDFSupport {
 
 			
 			try {
-				fields.get("condizioni_particolari").setValue(sale.getParticular_conditions().toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
+				if(forteRice) {
+					fillForteRiceField(fields.get("condizioni_particolari"), sale.getParticular_conditions(),
+							new Rectangle(34, 103, 526, 45), 9);
+				} else {
+					fields.get("condizioni_particolari").setValue(sale.getParticular_conditions().toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
+				}
 			} catch(Exception ex) {
 				try {
 					fields.get("condizioni_particolari").setReadOnly(true);
@@ -1600,17 +1614,17 @@ public class SalePDFSupport {
 				} catch(Exception ex2) {}
 			}
 			
-			pdfDoc.close();
-			
-		} catch(Exception ex) {
-			if(ContextSupport.isDebug()) {
-				ex.printStackTrace();
-			}
-			LogSupport.log(ExceptionUtils.getMessage(ex), Level.INFO);
-			LogSupport.log(ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex), Level.SEVERE);
 		}
-		
-		return filename;
+	}
+
+	private static void fillForteRiceField(PdfFormField field, String value, Rectangle bounds, float size) throws Exception {
+		field.getWidgets().get(0).setRectangle(new PdfArray(bounds));
+		field.setFieldFlag(PdfFormField.FF_MULTILINE);
+		field.setJustification(PdfFormField.ALIGN_LEFT);
+		field.setFont(PdfFontFactory.createFont(StandardFonts.HELVETICA));
+		field.setFontSize(size);
+		field.setColor(ColorConstants.BLACK);
+		field.setValue(safe(value)).setReadOnly(true);
 	}
 	
 	
