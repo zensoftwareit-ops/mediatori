@@ -1083,6 +1083,14 @@ public class SalePDFSupport {
 				number.setComb(true);
 				fields.get("acquirente").getWidgets().get(0)
 						.setRectangle(new PdfArray(new Rectangle(88, 579, 363, 17)));
+				placeForteRiceField(fields.get("resa_grani_interi"), new Rectangle(476, 458, 32, 18), 10, PdfFormField.ALIGN_RIGHT);
+				placeForteRiceField(fields.get("resa_globale"), new Rectangle(535, 458, 25, 18), 10, PdfFormField.ALIGN_RIGHT);
+				placeForteRiceField(fields.get("carico_motrici"), new Rectangle(460, 232, 13, 14), 10, PdfFormField.ALIGN_CENTER);
+				placeForteRiceField(fields.get("carico_al_coperto"), new Rectangle(536, 232, 13, 14), 10, PdfFormField.ALIGN_CENTER);
+				placeForteRiceField(fields.get("data_ritiro"), new Rectangle(409, 269, 151, 15), 9, PdfFormField.ALIGN_LEFT);
+				placeForteRiceField(fields.get("luogo_ritiro"), new Rectangle(135, 638, 198, 17), 10, PdfFormField.ALIGN_LEFT);
+				placeForteRiceField(fields.get("venditore_provincia"), new Rectangle(295, 675, 36, 17), 10, PdfFormField.ALIGN_LEFT);
+				placeForteRiceField(fields.get("lrit_provincia"), new Rectangle(295, 602, 36, 17), 10, PdfFormField.ALIGN_LEFT);
 			}
 			
 			SaleProduct sp = sale.getProduct();
@@ -1145,7 +1153,8 @@ public class SalePDFSupport {
 			}
 			
 			try {
-				fields.get("venditore_piva").setValue((sale.getSeller().getVat_number()).toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
+				String tax = forteRice ? taxIdentifier(sale.getSeller().getVat_number(), sale.getSeller().getTax_code()) : sale.getSeller().getVat_number();
+				fields.get("venditore_piva").setValue(safe(tax).toUpperCase(Locale.ITALY)).setReadOnly(true);
 			} catch(Exception ex) {
 				try {
 					fields.get("venditore_piva").setReadOnly(true);
@@ -1252,7 +1261,12 @@ public class SalePDFSupport {
 			}
 			
 			try {
-				fields.get("acquirente_comune").setValue((sale.getBuyer().getLegal_city()).toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
+				String city = sale.getBuyer().getLegal_city();
+				if(forteRice) {
+					city = (safe(sale.getBuyer().getLegal_zip_code()) + " "
+							+ cityAndProvince(city, sale.getBuyer().getLegal_province())).trim();
+				}
+				fields.get("acquirente_comune").setValue(safe(city).toUpperCase(Locale.ITALY)).setReadOnly(true);
 			} catch(Exception ex) {
 				try {
 					fields.get("acquirente_comune").setReadOnly(true);
@@ -1284,7 +1298,12 @@ public class SalePDFSupport {
 			}
 			
 			try {
-				fields.get("acquirente_piva").setValue((sale.getBuyer().getVat_number()).toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
+				if(forteRice && safe(sale.getBuyer().getVat_number()).isEmpty()) {
+					placeForteRiceField(fields.get("acquirente_piva"), new Rectangle(357, 542, 96, 17), 10, PdfFormField.ALIGN_LEFT);
+					fields.get("acquirente_piva").setValue(safe(sale.getBuyer().getTax_code())).setReadOnly(true);
+				} else {
+					fields.get("acquirente_piva").setValue((sale.getBuyer().getVat_number()).toUpperCase().replaceAll("NULL", "")).setReadOnly(true);
+				}
 			} catch(Exception ex) {
 				try {
 					fields.get("acquirente_piva").setReadOnly(true);
@@ -1313,7 +1332,10 @@ public class SalePDFSupport {
 				
 				String prezzo = new String();
 				
-				if(sale.getAlt_list() != null) {
+				if(forteRice) {
+					prezzo = firstNonEmpty(sale.getAlt_list(), sp.getAmount() == null ? ""
+							: NumberFormat.getCurrencyInstance(Locale.ITALY).format(sp.getAmount()).replace("€", "").trim());
+				} else if(sale.getAlt_list() != null) {
 					if(!sale.getAlt_list().isBlank()) {
 						prezzo = sale.getAlt_list();
 					} else {
@@ -1567,7 +1589,7 @@ public class SalePDFSupport {
 			}
 			
 			try {
-				if(sale.getDisinfestato().equals("SI")) {
+				if(!forteRice && sale.getDisinfestato().equals("SI")) {
 					fields.get("disinfestato").setValue("X").setReadOnly(true);
 				}
 				
@@ -1593,7 +1615,9 @@ public class SalePDFSupport {
 			
 			
 			try {
-				if(sale.getSignedSeller().equals("SI")) {
+				if(forteRice) {
+					fillForteRiceSignature(fields.get("signed_seller"), sale.getSignedSeller(), sale.getSeller().getSigner(), sale.getSignedSellerDate());
+				} else if(sale.getSignedSeller().equals("SI")) {
 					fields.get("signed_seller").setValue("Firmato da " + sale.getSeller().getReferent() + " il " + new SimpleDateFormat("dd/MM/yyyy").format(sale.getSignedSellerDate())).setReadOnly(true);
 				}
 				
@@ -1604,7 +1628,9 @@ public class SalePDFSupport {
 			}
 			
 			try {
-				if(sale.getSignedBuyer().equals("SI")) {
+				if(forteRice) {
+					fillForteRiceSignature(fields.get("signed_buyer"), sale.getSignedBuyer(), sale.getBuyer().getSigner(), sale.getSignedBuyerDate());
+				} else if(sale.getSignedBuyer().equals("SI")) {
 					fields.get("signed_buyer").setValue("Firmato da " + sale.getBuyer().getReferent() + " il " + new SimpleDateFormat("dd/MM/yyyy").format(sale.getSignedBuyerDate())).setReadOnly(true);
 				}
 				
@@ -1614,17 +1640,41 @@ public class SalePDFSupport {
 				} catch(Exception ex2) {}
 			}
 			
+			if(forteRice) {
+				if("SI".equalsIgnoreCase(safe(sale.getDisinfestato()))) {
+					text(new PdfCanvas(pdfDoc.getPage(1)), PdfFontFactory.createFont(StandardFonts.HELVETICA),
+							"Merce disinfestata", 110, 363, 170, 8);
+				}
+				for(PdfFormField field : fields.values()) {
+					field.setReadOnly(true);
+				}
+			}
 		}
 	}
 
 	private static void fillForteRiceField(PdfFormField field, String value, Rectangle bounds, float size) throws Exception {
-		field.getWidgets().get(0).setRectangle(new PdfArray(bounds));
+		placeForteRiceField(field, bounds, size, PdfFormField.ALIGN_LEFT);
 		field.setFieldFlag(PdfFormField.FF_MULTILINE);
-		field.setJustification(PdfFormField.ALIGN_LEFT);
+		field.setValue(safe(value)).setReadOnly(true);
+	}
+
+	private static void fillForteRiceSignature(PdfFormField field, String signed, String signer, java.util.Date signedDate) throws Exception {
+		if(!"SI".equalsIgnoreCase(safe(signed)) || signedDate == null) return;
+		String signature = "Firmato da " + safe(signer) + " il " + date(signedDate);
+		PdfFont font = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+		float width = field.getWidgets().get(0).getRectangle().toRectangle().getWidth();
+		field.setFieldFlag(PdfFormField.FF_MULTILINE, false);
+		field.setFont(font);
+		field.setFontSize(Math.min(8, (width - 6) / font.getWidth(signature, 1)));
+		field.setValue(signature).setReadOnly(true);
+	}
+
+	private static void placeForteRiceField(PdfFormField field, Rectangle bounds, float size, int alignment) throws Exception {
+		field.getWidgets().get(0).setRectangle(new PdfArray(bounds));
+		field.setJustification(alignment);
 		field.setFont(PdfFontFactory.createFont(StandardFonts.HELVETICA));
 		field.setFontSize(size);
 		field.setColor(ColorConstants.BLACK);
-		field.setValue(safe(value)).setReadOnly(true);
 	}
 	
 	
