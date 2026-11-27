@@ -30,9 +30,12 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
+import com.itextpdf.layout.Canvas;
+import com.itextpdf.layout.element.Paragraph;
 
 
 import itsol.luna.core.beans.Sale;
+import itsol.luna.core.beans.Customer;
 import itsol.luna.core.beans.SaleProduct;
 
 public class SalePDFSupport {
@@ -271,14 +274,14 @@ public class SalePDFSupport {
 			if("SI".equalsIgnoreCase(safe(sale.getSignedSeller())) && sale.getSignedSellerDate() != null
 					&& sale.getSeller() != null) {
 				String signature = "Firmato da " + sale.getSeller().getSigner() + " il " + dateTime(sale.getSignedSellerDate());
-				text(canvas, regular, signature, 57, 174, 126, 6.5f);
-				text(canvas, regular, signature, 57, 27, 126, 6.5f);
+				canvasSignature(canvas, regular, signature, 57, 174, 126);
+				canvasSignature(canvas, regular, signature, 57, 27, 126);
 			}
 			if("SI".equalsIgnoreCase(safe(sale.getSignedBuyer())) && sale.getSignedBuyerDate() != null
 					&& sale.getBuyer() != null) {
 				String signature = "Firmato da " + sale.getBuyer().getSigner() + " il " + dateTime(sale.getSignedBuyerDate());
-				text(canvas, regular, signature, 412, 174, 126, 6.5f);
-				text(canvas, regular, signature, 412, 27, 126, 6.5f);
+				canvasSignature(canvas, regular, signature, 412, 174, 126);
+				canvasSignature(canvas, regular, signature, 412, 27, 126);
 			}
 			if(mediatorSignature != null && mediatorSignature.length > 0) {
 				ImageData signature = ImageDataFactory.create(mediatorSignature);
@@ -379,14 +382,14 @@ public class SalePDFSupport {
 			if("SI".equalsIgnoreCase(safe(sale.getSignedSeller())) && sale.getSignedSellerDate() != null
 					&& sale.getSeller() != null) {
 				String signature = "Firmato da " + sale.getSeller().getSigner() + " il " + dateTime(sale.getSignedSellerDate());
-				text(canvas, regular, signature, 38, 145, 145, 6.5f);
-				text(canvas, regular, signature, 65, 45, 112, 6.5f);
+				canvasSignature(canvas, regular, signature, 38, 145, 145);
+				canvasSignature(canvas, regular, signature, 65, 45, 112);
 			}
 			if("SI".equalsIgnoreCase(safe(sale.getSignedBuyer())) && sale.getSignedBuyerDate() != null
 					&& sale.getBuyer() != null) {
 				String signature = "Firmato da " + sale.getBuyer().getSigner() + " il " + dateTime(sale.getSignedBuyerDate());
-				text(canvas, regular, signature, 412, 145, 145, 6.5f);
-				text(canvas, regular, signature, 425, 45, 128, 6.5f);
+				canvasSignature(canvas, regular, signature, 412, 145, 145);
+				canvasSignature(canvas, regular, signature, 425, 45, 128);
 			}
 			if(mediatorSignature != null && mediatorSignature.length > 0) {
 				ImageData signature = ImageDataFactory.create(mediatorSignature);
@@ -449,14 +452,14 @@ public class SalePDFSupport {
 			fillField(form, "l\u00ec", sellerCity, 7);
 
 			if("SI".equalsIgnoreCase(safe(sale.getSignedBuyer())) && sale.getSignedBuyerDate() != null && sale.getBuyer() != null) {
-				String signature = "Firmato da " + sale.getBuyer().getSigner() + " il " + date(sale.getSignedBuyerDate());
-				fillField(form, "PARTE ACQUIRENTE", signature, 5.3f);
-				fillField(form, "PARTE ACQUIRENTE_2", signature, 6.5f);
+				String signature = signatureText(sale.getSignedBuyer(), sale.getBuyer(), sale.getSignedBuyerDate());
+				fillSignatureField(form.getField("PARTE ACQUIRENTE"), signature, 6.5f);
+				fillSignatureField(form.getField("PARTE ACQUIRENTE_2"), signature, 6.5f);
 			}
 			if("SI".equalsIgnoreCase(safe(sale.getSignedSeller())) && sale.getSignedSellerDate() != null && sale.getSeller() != null) {
-				String signature = "Firmato da " + sale.getSeller().getSigner() + " il " + date(sale.getSignedSellerDate());
-				fillField(form, "PARTE VENDITRICE", signature, 5.3f);
-				fillField(form, "PARTE VENDITRICE_2", signature, 6.5f);
+				String signature = signatureText(sale.getSignedSeller(), sale.getSeller(), sale.getSignedSellerDate());
+				fillSignatureField(form.getField("PARTE VENDITRICE"), signature, 6.5f);
+				fillSignatureField(form.getField("PARTE VENDITRICE_2"), signature, 6.5f);
 			}
 			if(mediatorSignature == null || mediatorSignature.length == 0) {
 				fillField(form, "IL MEDIATORE", sale.getAdmin() == null ? "" : safe(sale.getAdmin().getFull_name()), 7);
@@ -512,6 +515,11 @@ public class SalePDFSupport {
 		String price = !safe(sale.getAlt_list()).isEmpty() ? safe(sale.getAlt_list()) : number(product.getAmount());
 		if(price.isEmpty()) return "";
 		return price + ("iva".equalsIgnoreCase(safe(product.getAmount_type())) ? " IVA INCLUSA" : " IVA ESCLUSA");
+	}
+
+	private static void canvasSignature(PdfCanvas canvas, PdfFont font, String signature, float x, float y, float maxWidth) {
+		float size = Math.min(6.5f, maxWidth / font.getWidth(signature, 1));
+		canvas.beginText().setFontAndSize(font, size).moveText(x, y).showText(signature).endText();
 	}
 
 	private static void text(PdfCanvas canvas, PdfFont font, String text, float x, float y, float maxWidth, float size) {
@@ -681,6 +689,11 @@ public class SalePDFSupport {
 		SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.ITALY);
 		format.setTimeZone(TimeZone.getTimeZone("Europe/Rome"));
 		return format.format(date);
+	}
+
+	public static String signatureText(String signed, Customer party, java.util.Date signedDate) {
+		if(!"SI".equalsIgnoreCase(safe(signed)) || party == null || signedDate == null) return "";
+		return "Firmato da " + safe(party.getSigner()) + " il " + dateTime(signedDate);
 	}
 
 	private static String safe(String value) {
@@ -1045,6 +1058,7 @@ public class SalePDFSupport {
 							
 			
 			
+			writeTemplateSignatures(pdfDoc, fields, sale);
 			pdfDoc.close();
 		} catch(Exception ex) {
 			if(ContextSupport.isDebug()) {
@@ -1615,32 +1629,9 @@ public class SalePDFSupport {
 			}
 			
 			
-			try {
-				if(forteRice) {
-					fillForteRiceSignature(fields.get("signed_seller"), sale.getSignedSeller(), sale.getSeller().getSigner(), sale.getSignedSellerDate());
-				} else if(sale.getSignedSeller().equals("SI")) {
-					fields.get("signed_seller").setValue("Firmato da " + sale.getSeller().getReferent() + " il " + new SimpleDateFormat("dd/MM/yyyy").format(sale.getSignedSellerDate())).setReadOnly(true);
-				}
-				
-			} catch(Exception ex) {
-				try {
-					fields.get("signed_seller").setReadOnly(true);
-				} catch(Exception ex2) {}
-			}
 			
-			try {
-				if(forteRice) {
-					fillForteRiceSignature(fields.get("signed_buyer"), sale.getSignedBuyer(), sale.getBuyer().getSigner(), sale.getSignedBuyerDate());
-				} else if(sale.getSignedBuyer().equals("SI")) {
-					fields.get("signed_buyer").setValue("Firmato da " + sale.getBuyer().getReferent() + " il " + new SimpleDateFormat("dd/MM/yyyy").format(sale.getSignedBuyerDate())).setReadOnly(true);
-				}
-				
-			} catch(Exception ex) {
-				try {
-					fields.get("signed_buyer").setReadOnly(true);
-				} catch(Exception ex2) {}
-			}
 			
+			writeTemplateSignatures(pdfDoc, fields, sale);
 			if(forteRice) {
 				if("SI".equalsIgnoreCase(safe(sale.getDisinfestato()))) {
 					text(new PdfCanvas(pdfDoc.getPage(1)), PdfFontFactory.createFont(StandardFonts.HELVETICA),
@@ -1659,14 +1650,22 @@ public class SalePDFSupport {
 		field.setValue(safe(value)).setReadOnly(true);
 	}
 
-	private static void fillForteRiceSignature(PdfFormField field, String signed, String signer, java.util.Date signedDate) throws Exception {
-		if(!"SI".equalsIgnoreCase(safe(signed)) || signedDate == null) return;
-		String signature = "Firmato da " + safe(signer) + " il " + date(signedDate);
+	private static void fillSignatureField(PdfFormField field, String signature, float maxSize) throws Exception {
+		if(field == null || field.getWidgets().isEmpty()) return;
+		if(signature.isEmpty()) {
+			field.setReadOnly(true);
+			return;
+		}
 		PdfFont font = PdfFontFactory.createFont(StandardFonts.HELVETICA);
-		float width = field.getWidgets().get(0).getRectangle().toRectangle().getWidth();
+		float size = maxSize;
+		for(com.itextpdf.kernel.pdf.annot.PdfWidgetAnnotation widget : field.getWidgets()) {
+			Rectangle bounds = widget.getRectangle().toRectangle();
+			size = Math.min(size, Math.min(bounds.getHeight() * 0.65f,
+					(bounds.getWidth() - 6) / font.getWidth(signature, 1)));
+		}
 		field.setFieldFlag(PdfFormField.FF_MULTILINE, false);
 		field.setFont(font);
-		field.setFontSize(Math.min(8, (width - 6) / font.getWidth(signature, 1)));
+		field.setFontSize(size);
 		field.setValue(signature).setReadOnly(true);
 	}
 
@@ -1679,6 +1678,28 @@ public class SalePDFSupport {
 	}
 	
 	
+	private static void writeTemplateSignatures(PdfDocument pdf, Map<String, PdfFormField> fields, Sale sale) throws Exception {
+		String seller = signatureText(sale.getSignedSeller(), sale.getSeller(), sale.getSignedSellerDate());
+		String buyer = signatureText(sale.getSignedBuyer(), sale.getBuyer(), sale.getSignedBuyerDate());
+		PdfFormField sellerField = fields.get("signed_seller");
+		if(sellerField == null) sellerField = fields.get("firma_v");
+		PdfFormField buyerField = fields.get("signed_buyer");
+		if(buyerField == null) buyerField = fields.get("firma_a");
+		fillSignatureField(sellerField, seller, 8);
+		fillSignatureField(buyerField, buyer, 8);
+
+		boolean sellerNeedsPage = !seller.isEmpty() && (sellerField == null || sellerField.getWidgets().isEmpty());
+		boolean buyerNeedsPage = !buyer.isEmpty() && (buyerField == null || buyerField.getWidgets().isEmpty());
+		if(!sellerNeedsPage && !buyerNeedsPage) return;
+
+		PdfPage page = pdf.addNewPage(com.itextpdf.kernel.geom.PageSize.A4);
+		Canvas canvas = new Canvas(page, new Rectangle(42, 42, 511, 758));
+		canvas.add(new Paragraph("Firme elettroniche - Contratto n. " + value(sale.getNumber())).setFontSize(15));
+		if(sellerNeedsPage) canvas.add(new Paragraph("Venditore: " + seller));
+		if(buyerNeedsPage) canvas.add(new Paragraph("Acquirente: " + buyer));
+		canvas.close();
+	}
+
 	// CURTI
 	public static String create3(String filename, Sale sale) {
 		if(isRisoGallo(sale)) return createRisoGallo(filename, sale);
@@ -2133,22 +2154,6 @@ public class SalePDFSupport {
 				} catch(Exception ex2) {}
 			}
 			
-			try {
-		
-				fields.get("firma_v").setValue("Firmato da " + sale.getSeller().getSigner() + " il " + new SimpleDateFormat("dd/MM/yyyy").format(sale.getSignedSellerDate())).setReadOnly(true);
-			} catch(Exception ex) {
-				try {
-					fields.get("firma_v").setReadOnly(true);
-				} catch(Exception ex2) {}
-			}
-			
-			try {
-				fields.get("firma_a").setValue("Firmato da " + sale.getBuyer().getSigner() + " il " + new SimpleDateFormat("dd/MM/yyyy").format(sale.getSignedBuyerDate())).setReadOnly(true);
-			} catch(Exception ex) {
-				try {
-					fields.get("firma_a").setReadOnly(true);
-				} catch(Exception ex2) {}
-			}
 			
 			
 			try {
@@ -2187,6 +2192,7 @@ public class SalePDFSupport {
 				} catch(Exception ex2) {}
 			}
 			
+			writeTemplateSignatures(pdfDoc, fields, sale);
 			pdfDoc.close();
 			
 		} catch(Exception ex) {
@@ -2654,22 +2660,6 @@ public class SalePDFSupport {
 				} catch(Exception ex2) {}
 			}
 			
-			try {
-		
-				fields.get("firma_v").setValue("Firmato da " + sale.getSeller().getSigner() + " il " + new SimpleDateFormat("dd/MM/yyyy").format(sale.getSignedSellerDate())).setReadOnly(true);
-			} catch(Exception ex) {
-				try {
-					fields.get("firma_v").setReadOnly(true);
-				} catch(Exception ex2) {}
-			}
-			
-			try {
-				fields.get("firma_a").setValue("Firmato da " + sale.getBuyer().getSigner() + " il " + new SimpleDateFormat("dd/MM/yyyy").format(sale.getSignedBuyerDate())).setReadOnly(true);
-			} catch(Exception ex) {
-				try {
-					fields.get("firma_a").setReadOnly(true);
-				} catch(Exception ex2) {}
-			}
 			
 			
 			try {
@@ -2708,6 +2698,7 @@ public class SalePDFSupport {
 				} catch(Exception ex2) {}
 			}
 			
+			writeTemplateSignatures(pdfDoc, fields, sale);
 			pdfDoc.close();
 			
 		} catch(Exception ex) {
@@ -3055,6 +3046,7 @@ public class SalePDFSupport {
 							
 			
 			
+			writeTemplateSignatures(pdfDoc, fields, sale);
 			pdfDoc.close();
 		} catch(Exception ex) {
 			if(ContextSupport.isDebug()) {

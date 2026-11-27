@@ -1498,6 +1498,20 @@ public class SaleCreatePDFN2 extends MyActionSupport implements MyActionInterfac
 					} catch(Exception ex) {}
 
 					//fine
+					String sellerSignature = SalePDFSupport.signatureText(sale.getSignedSeller(), sale.getSeller(), sale.getSignedSellerDate());
+					String buyerSignature = SalePDFSupport.signatureText(sale.getSignedBuyer(), sale.getBuyer(), sale.getSignedBuyerDate());
+					if(!sellerSignature.isEmpty() || !buyerSignature.isEmpty()) {
+						PdfPTable signatures = new PdfPTable(new float[] {1, 1});
+						signatures.setWidthPercentage(100);
+						signatures.setSpacingBefore(8);
+						signatures.setKeepTogether(true);
+						for(String signature : new String[] {sellerSignature, buyerSignature}) {
+							PdfPCell signatureCell = new PdfPCell(new Phrase(signature, small));
+							signatureCell.setBorderWidth(0);
+							signatures.addCell(signatureCell);
+						}
+						document.add(signatures);
+					}
 	
 					document.close();
 					

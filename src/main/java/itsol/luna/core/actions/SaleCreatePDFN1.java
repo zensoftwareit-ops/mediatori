@@ -74,7 +74,7 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 	Font small_bold = new Font(Font.FontFamily.HELVETICA, 7, Font.BOLD);
 	Font legal_small = new Font(Font.FontFamily.HELVETICA, (float)5.5, Font.NORMAL);
 	Font legal_small_bold = new Font(Font.FontFamily.HELVETICA, (float)5.5, Font.BOLD);
-	Font console = new Font(Font.FontFamily.TIMES_ROMAN, 9, Font.NORMAL);
+	Font console = new Font(Font.FontFamily.TIMES_ROMAN, 7, Font.NORMAL);
 	
 	Document document;
 	ByteArrayOutputStream output;
@@ -1418,8 +1418,9 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 						
 						table.addCell(cell);
 						
-						if(sale.getSignedSeller().equals("SI")) {
-							p = new Phrase("Firmato da " + sale.getSeller().getSigner() + " il " + format.format(sale.getSignedSellerDate()), console);		
+						String sellerSignature = SalePDFSupport.signatureText(sale.getSignedSeller(), sale.getSeller(), sale.getSignedSellerDate());
+						if(!sellerSignature.isEmpty()) {
+							p = new Phrase(sellerSignature, console);
 							cell = new PdfPCell(p);
 							cell.setVerticalAlignment(Element.ALIGN_BOTTOM);
 							cell.setBorderWidth(0);
@@ -1444,8 +1445,9 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 						
 						table.addCell(cell);
 						
-						if(sale.getSignedBuyer().equals("SI")) {
-							p = new Phrase("Firmato da " + sale.getBuyer().getSigner() + " il " + format.format(sale.getSignedBuyerDate()), console);		
+						String buyerSignature = SalePDFSupport.signatureText(sale.getSignedBuyer(), sale.getBuyer(), sale.getSignedBuyerDate());
+						if(!buyerSignature.isEmpty()) {
+							p = new Phrase(buyerSignature, console);
 							cell = new PdfPCell(p);
 							cell.setVerticalAlignment(Element.ALIGN_BOTTOM);
 							cell.setBorderWidth(0);
@@ -1664,8 +1666,9 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 						
 						table.addCell(cell);
 						
-						if(sale.getSignedSeller().equals("SI")) {
-							p = new Phrase("Firmato da " + sale.getSeller().getSigner() + " il " + format.format(sale.getSignedSellerDate()), console);		
+						String sellerSignature = SalePDFSupport.signatureText(sale.getSignedSeller(), sale.getSeller(), sale.getSignedSellerDate());
+						if(!sellerSignature.isEmpty()) {
+							p = new Phrase(sellerSignature, console);
 							cell = new PdfPCell(p);
 							cell.setVerticalAlignment(Element.ALIGN_BOTTOM);
 							cell.setBorderWidth(0);
@@ -1690,8 +1693,9 @@ public class SaleCreatePDFN1 extends MyActionSupport implements MyActionInterfac
 						
 						table.addCell(cell);
 						
-						if(sale.getSignedBuyer().equals("SI")) {
-							p = new Phrase("Firmato da " + sale.getBuyer().getSigner() + " il " + format.format(sale.getSignedBuyerDate()), console);		
+						String buyerSignature = SalePDFSupport.signatureText(sale.getSignedBuyer(), sale.getBuyer(), sale.getSignedBuyerDate());
+						if(!buyerSignature.isEmpty()) {
+							p = new Phrase(buyerSignature, console);
 							cell = new PdfPCell(p);
 							cell.setVerticalAlignment(Element.ALIGN_BOTTOM);
 							cell.setBorderWidth(0);
